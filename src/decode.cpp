@@ -17,10 +17,9 @@
 
 using namespace std;
 
-map<int, vector<int>> packet_contents = {
-	{360, {0, 1, 2, 3}}
-	
-};
+// Define a map of packet ids to the datafields expected to be in that packet
+map<int, unique_ptr<DataField>> pkt_lut;
+
 
 class DataField{
 	public:
@@ -30,6 +29,8 @@ class DataField{
 		double offset;
 		double low_lim;
 		double upp_lim;
+		int    packet_id;
+		int    byte_locs[2];
 		string unit;
 		DataField(string n_title, double n_gain, double n_offset){
 			title = n_title;
@@ -39,11 +40,15 @@ class DataField{
 		void update_raw(int raw_val){
 			value = raw_val * gain + offset;
 		}
+		
+		void update_direct(double new_val){
+			value = new_val;  
+		}
 };
 
 class SharedData{
 	private:
-		vector<DataField> datapoints;
+		vector<DataField> datapoints; 
 		mutable mutex mtx;
 	
 	public:
@@ -152,12 +157,31 @@ class CANBus{
 					return 1;
 				}
 				
+				
+				// TODO: Update points dependent on packet id
 				dashData.update_point(0, (int)frame.data[0]);
 				dashData.update_point(1, (int)frame.data[2]);
 			}
 			
 		}
 };
+
+
+void refresh_pkt_lut(SharedData& dashData){
+	vector<DataField> points = dashData.get_points();
+	pkt_lut.clear();
+	for (DataField point : points){
+		if (pkt_lut.count(point.packet_id) > 0){
+			pkt_lut.at(point.packet_id).push_back();
+		}
+		else{
+			vector<
+			pkt_lut.insert({point.packet_id, {}});
+		}
+		
+	}  
+}
+
 
 
 void dummy_display(SharedData& dashData){
