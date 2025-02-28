@@ -1,7 +1,4 @@
 
-#include <iostream>
-#include <cstring>
-#include <string>
 #include <linux/can.h>
 #include <sys/socket.h>
 #include <sys/ioctl.h>
@@ -10,17 +7,20 @@
 #include <unistd.h>
 #include <vector>
 #include <map>
+#include <memory>
 #include <mutex>
+#include <shared_mutex>
 #include <thread>
 #include <string>
+#include <iostream>
+#include <cstring>
 
 
 using namespace std;
 
-// Define a map of packet ids to the datafields expected to be in that packet
-map<int, unique_ptr<DataField>> pkt_lut;
-
-
+/* Data field class which stores values against their title whilst also
+ * holding relevant unit, limits and raw data scaling information
+ */
 class DataField{
 	public:
 		string title;
@@ -29,14 +29,17 @@ class DataField{
 		double offset;
 		double low_lim;
 		double upp_lim;
-		int    packet_id;
-		int    byte_locs[2];
+		int    bytes;
 		string unit;
-		DataField(string n_title, double n_gain, double n_offset){
-			title = n_title;
-			gain = n_gain;
+		
+		DataField(string n_title, double n_gain, double n_offset, int n_bytes, string n_unit){
+			title  = n_title;
+			gain   = n_gain;
 			offset = n_offset;
+			bytes  = n_bytes;
+			unit   = n_unit;
 		}
+		
 		void update_raw(int raw_val){
 			value = raw_val * gain + offset;
 		}
@@ -46,31 +49,61 @@ class DataField{
 		}
 };
 
+
 class SharedData{
 	private:
-		vector<DataField> datapoints; 
-		mutable mutex mtx;
+		vector<shared_ptr<DataField> > datapoints; 
+		mutable shared_mutex data_mutex;
 	
 	public:
-		void add_point(DataField new_field){
-			lock_guard<mutex> lock(mtx);
+		void add_point(shared_ptr<DataField> new_field){
+			unique_lock<shared_mutex> lock(data_mutex);
 			datapoints.push_back(new_field);
 		}
 		
-		void update_point(int val_index, int new_val){
-			lock_guard<mutex> lock(mtx);
-			
-			datapoints.at(val_index).update_raw(new_val);
+		void update_data(vector<shared_ptr<DataField> > n_datapoints){
+			unique_lock<shared_mutex> lock(data_mutex);
+			datapoints.swap(n_datapoints);
 		}
 		
-		vector<DataField> get_points(){
-			lock_guard<mutex> lock(mtx);
+		vector<shared_ptr<DataField> > get_points(){
+			shared_lock<shared_mutex> lock(data_mutex);
 			return datapoints;
 		}
 };
 
+
+/* Structure defining the data field objects associated with a packet
+ * Separate from the individual CAN struct which contain specific,
+ * individual frames
+ * The sequence that the packet contents is in DOES MATTER
+ */
+class CANPacket{
+	public:
+		int packet_id;
+		vector<shared_ptr<DataField> > contents;
+		shared_ptr<SharedData> data;
+	
+		CANPacket(int n_packet_id, shared_ptr<SharedData> n_data, vector<shared_ptr<DataField> > n_contents){
+			packet_id = n_packet_id;
+			contents  = n_contents;
+			data      = n_data;
+			for (shared_ptr<DataField> dp : n_contents){
+				n_data->add_point(dp);
+			}
+		}
+		
+		void update_dps(int can_data[8]){
+			vector<shared_ptr<DataField> > new_data;
+			vector<shared_ptr<DataField> > old_data = data->get_points();
+			
+		}
+};
+
+
 class CANBus{
 	public:
+		map<int, unique_ptr<CANPacket> > packet_lut;
 		int sock;
 		bool sock_init = false;
 		struct sockaddr_can addr;
@@ -90,7 +123,7 @@ class CANBus{
 			}
 			
 			// Establish parameters of the CAN interface we'd like to bind to the socket
-			std::strcpy(ifr.ifr_name, "can1");
+			strcpy(ifr.ifr_name, "can1");
 			if (ioctl(sock, SIOCGIFINDEX, &ifr) < 0){
 				perror("Couldn't open CAN interface using ioctl!");
 				return 1;
@@ -127,18 +160,18 @@ class CANBus{
 				}
 				
 				
-				std::cout << "ID: " << std::hex << frame.can_id << std::endl;
-				std::cout << "Data: ";
+				cout << "ID: " << hex << frame.can_id << endl;
+				cout << "Data: ";
 				for (int i=0; i<frame.len; i++){
-					std::cout << std::hex << (int)frame.data[i] << " ";
+					cout << hex << (int)frame.data[i] << " ";
 				}
-				std::cout << std::endl;
+				cout << endl;
 			}
 			return 0;
 		}
 		
 		// Method for waiting on and filing packets into their appropriate data field objects
-		int listen(SharedData& dashData){
+		int listen(shared_ptr<SharedData> shared_data){
 			if(not sock_init){
 				perror("Socket not initialised! Has start_can been run?");
 				return 1;
@@ -157,40 +190,25 @@ class CANBus{
 					return 1;
 				}
 				
+				// Check if the packet received is one we're looking for
+				if (packet_lut.count((int)frame.can_id) > 0){
+					
+				}
 				
-				// TODO: Update points dependent on packet id
-				dashData.update_point(0, (int)frame.data[0]);
-				dashData.update_point(1, (int)frame.data[2]);
+				
 			}
 			
 		}
 };
 
 
-void refresh_pkt_lut(SharedData& dashData){
-	vector<DataField> points = dashData.get_points();
-	pkt_lut.clear();
-	for (DataField point : points){
-		if (pkt_lut.count(point.packet_id) > 0){
-			pkt_lut.at(point.packet_id).push_back();
-		}
-		else{
-			vector<
-			pkt_lut.insert({point.packet_id, {}});
-		}
-		
-	}  
-}
-
-
-
-void dummy_display(SharedData& dashData){
+void dummy_display(shared_ptr<SharedData> dashData){
 	while(true){
-		auto datapoints = dashData.get_points();
+		vector<shared_ptr<DataField> > datapoints = dashData->get_points();
 		
 		system("clear");
-		for (const auto& dp : datapoints){
-			cout << dp.title << ": " << dp.value << endl;
+		for (shared_ptr<DataField> dp : datapoints){
+			cout << dp->title << ": " << dp->value << endl;
 		}
 		
 		this_thread::sleep_for(chrono::milliseconds(200));
@@ -200,21 +218,31 @@ void dummy_display(SharedData& dashData){
 
 
 int main(){
+	
+	system("sudo ip link set can0 up type can bitrate 1000000 \
+		&& sudo ip link set can1 up type can bitrate 1000000");
+	
+	shared_ptr<SharedData> dashData = make_shared<SharedData>();
+	
+	
+	vector<shared_ptr<DataField> > pk_360_c = {
+			make_shared<DataField>("RPM", 1, 0, 2, "RPM"),
+			make_shared<DataField>("MAP", 0.1, 0, 2, "kPa"),
+			make_shared<DataField>("Throttle Pos.", 0.1, 0, 2, "%")
+			};
+	unique_ptr<CANPacket> pk_360 = make_unique<CANPacket>(360, dashData, pk_360_c);
+	
+	
 	CANBus bus;
 	bus.start_can();
+	//bus.dump_packets(50);
+	bus.packet_lut.insert({360, pk_360});
 	
-	SharedData dashData;
-	DataField d1 = DataField("RPM", 0.1, -101.3);
-	DataField d2 = DataField("Coolant Temp", 0.1, -101.3);
 	
-	dashData.add_point(d1);
-	dashData.add_point(d2);
-	
-	thread producer(&CANBus::listen, &bus, ref(dashData));
-	thread consumer(dummy_display, ref(dashData));
+	thread producer(&CANBus::listen, &bus, dashData);
+	thread consumer(dummy_display, dashData);
 	
 	producer.join();
 	consumer.join();
-	
 	return 0;
 	}
