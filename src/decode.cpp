@@ -89,14 +89,16 @@ class CANPacket{
 			contents  = n_contents;
 			data      = n_data;
 			for (shared_ptr<DataField> dp : n_contents){
-				n_data->add_point(dp);
+				data->add_point(dp);
 			}
 		}
 		
-		void update_dps(int can_data[8]){
+		void update_dps(__u8 can_data[8]){
 			vector<shared_ptr<DataField> > new_data;
 			vector<shared_ptr<DataField> > old_data = data->get_points();
-			
+			for (shared_ptr<DataField> df : old_data){
+				if(contents.count
+			} 
 		}
 };
 
@@ -192,17 +194,20 @@ class CANBus{
 				
 				// Check if the packet received is one we're looking for
 				if (packet_lut.count((int)frame.can_id) > 0){
-					
+					packet_lut.at((int)frame.can_id)->update_dps(frame.data);
 				}
-				
-				
 			}
 			
+		}
+		
+		void add_packet(int packet_id, unique_ptr<CANPacket> pkt_ptr){
+			packet_lut[packet_id] = move(pkt_ptr);
 		}
 };
 
 
 void dummy_display(shared_ptr<SharedData> dashData){
+	/*
 	while(true){
 		vector<shared_ptr<DataField> > datapoints = dashData->get_points();
 		
@@ -213,6 +218,7 @@ void dummy_display(shared_ptr<SharedData> dashData){
 		
 		this_thread::sleep_for(chrono::milliseconds(200));
 	}
+	*/
 }
 
 
@@ -224,20 +230,17 @@ int main(){
 	
 	shared_ptr<SharedData> dashData = make_shared<SharedData>();
 	
-	
-	vector<shared_ptr<DataField> > pk_360_c = {
+	vector<shared_ptr<DataField> > pk_360 = {
 			make_shared<DataField>("RPM", 1, 0, 2, "RPM"),
 			make_shared<DataField>("MAP", 0.1, 0, 2, "kPa"),
 			make_shared<DataField>("Throttle Pos.", 0.1, 0, 2, "%")
 			};
-	unique_ptr<CANPacket> pk_360 = make_unique<CANPacket>(360, dashData, pk_360_c);
 	
 	
 	CANBus bus;
 	bus.start_can();
 	//bus.dump_packets(50);
-	bus.packet_lut.insert({360, pk_360});
-	
+	bus.add_packet(0x360, move(make_unique<CANPacket>(0x360, dashData, pk_360)));
 	
 	thread producer(&CANBus::listen, &bus, dashData);
 	thread consumer(dummy_display, dashData);
