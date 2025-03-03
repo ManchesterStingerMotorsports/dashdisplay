@@ -49,7 +49,9 @@ class DataField{
 		}
 };
 
-
+/* Class for managing a thread safe data structure keeping a vector
+ * of pointers to DataField objects
+ */
 class SharedData{
 	private:
 		vector<shared_ptr<DataField> > datapoints; 
@@ -64,6 +66,10 @@ class SharedData{
 		void update_data(vector<shared_ptr<DataField> > n_datapoints){
 			unique_lock<shared_mutex> lock(data_mutex);
 			datapoints.swap(n_datapoints);
+		}
+		
+		int get_dps_size(){
+			return datapoints.size();
 		}
 		
 		vector<shared_ptr<DataField> > get_points(){
@@ -81,24 +87,37 @@ class SharedData{
 class CANPacket{
 	public:
 		int packet_id;
-		vector<shared_ptr<DataField> > contents;
+		vector<int> contents_idxs;
 		shared_ptr<SharedData> data;
 	
 		CANPacket(int n_packet_id, shared_ptr<SharedData> n_data, vector<shared_ptr<DataField> > n_contents){
 			packet_id = n_packet_id;
-			contents  = n_contents;
 			data      = n_data;
 			for (shared_ptr<DataField> dp : n_contents){
 				data->add_point(dp);
+				contents_idxs.push_back(data->get_dps_size() - 1);
 			}
 		}
 		
 		void update_dps(__u8 can_data[8]){
 			vector<shared_ptr<DataField> > new_data;
 			vector<shared_ptr<DataField> > old_data = data->get_points();
-			for (shared_ptr<DataField> df : old_data){
-				if(contents.count
-			} 
+			for (size_t i=0; i<old_data.size(); i++){
+				new_data.push_back(old_data.at(i));
+			}
+			int array_consumed = 0;
+			for (int i : contents_idxs){
+				shared_ptr<DataField> updated_field = make_shared<DataField>(*old_data.at(i));
+				int nd = 0;
+				for (int b=0; b<updated_field->bytes; b++){
+					nd = (nd << 8) | can_data[array_consumed + b];
+				}
+				updated_field->update_raw(nd);
+				array_consumed += updated_field->bytes;
+				new_data.at(i) = updated_field;
+			}
+			
+			data->update_data(new_data);
 		}
 };
 
@@ -207,7 +226,7 @@ class CANBus{
 
 
 void dummy_display(shared_ptr<SharedData> dashData){
-	/*
+	
 	while(true){
 		vector<shared_ptr<DataField> > datapoints = dashData->get_points();
 		
@@ -218,7 +237,7 @@ void dummy_display(shared_ptr<SharedData> dashData){
 		
 		this_thread::sleep_for(chrono::milliseconds(200));
 	}
-	*/
+	
 }
 
 
@@ -236,11 +255,19 @@ int main(){
 			make_shared<DataField>("Throttle Pos.", 0.1, 0, 2, "%")
 			};
 	
+	vector<shared_ptr<DataField> > pk_3E0 = {
+			make_shared<DataField>("Coolant Temp.", 0.1, 0, 2, "C"),
+			make_shared<DataField>("Air Temp.", 0.1, 0, 2, "C"),
+			make_shared<DataField>("Fuel Temp.", 0.1, 0, 2, "C"),
+			make_shared<DataField>("Oil Temp.", 0.1, 0, 2, "C")
+			};
 	
 	CANBus bus;
 	bus.start_can();
 	//bus.dump_packets(50);
 	bus.add_packet(0x360, move(make_unique<CANPacket>(0x360, dashData, pk_360)));
+	bus.add_packet(0x3E0, move(make_unique<CANPacket>(0x3E0, dashData, pk_3E0)));
+	
 	
 	thread producer(&CANBus::listen, &bus, dashData);
 	thread consumer(dummy_display, dashData);
