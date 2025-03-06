@@ -63,6 +63,11 @@ class SharedData{
 			datapoints.push_back(new_field);
 		}
 		
+		/*Implements double buffering for data renewal
+		 * The producer (in this case the CAN bus) prepares a new vector
+		 * of points (updating only those which are modified). This is 
+		 * then swapped with the existing set minimising lock time
+		 */
 		void update_data(vector<shared_ptr<DataField> > n_datapoints){
 			unique_lock<shared_mutex> lock(data_mutex);
 			datapoints.swap(n_datapoints);
@@ -90,6 +95,9 @@ class CANPacket{
 		vector<int> contents_idxs;
 		shared_ptr<SharedData> data;
 	
+		/* Packets maintain a vector of indexes to the DataField pointer
+		 * in the SharedData object relating to the dfs in this packet
+		 */
 		CANPacket(int n_packet_id, shared_ptr<SharedData> n_data, vector<shared_ptr<DataField> > n_contents){
 			packet_id = n_packet_id;
 			data      = n_data;
