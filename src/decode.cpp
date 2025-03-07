@@ -14,7 +14,7 @@
 #include <string>
 #include <iostream>
 #include <cstring>
-
+#include "display.h"
 
 using namespace std;
 
@@ -249,6 +249,12 @@ void dummy_display(shared_ptr<SharedData> dashData){
 }
 
 
+int app_boot_up(shared_ptr<SharedData> shared_data){
+	auto app = Gtk::Application::create("com.formulastudentuom.dashdisplay");
+	DashApp window = DashApp();
+	return app->run(*window.get_main_window());
+	}
+
 
 int main(){
 	
@@ -277,8 +283,10 @@ int main(){
 	bus.add_packet(0x3E0, move(make_unique<CANPacket>(0x3E0, dashData, pk_3E0)));
 	
 	
+	
+	
 	thread producer(&CANBus::listen, &bus, dashData);
-	thread consumer(dummy_display, dashData);
+	thread consumer(app_boot_up, dashData);
 	
 	producer.join();
 	consumer.join();

@@ -4,9 +4,13 @@
 class DashApp : public Gtk::Window {
 	public:
 		DashApp();
+		Gtk::Window* get_main_window();
 		
 	protected:
 		bool update_ui();
-	
-		Gtk::Label ValueLabel00;
+		
+		Glib::RefPtr<Gtk::Builder> builder;
+		Gtk::Window *MainWindow;
+		Gtk::Label *GearPosLabel;
+		Gtk::LevelBar *RevCounterBar;
 	};

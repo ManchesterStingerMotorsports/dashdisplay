@@ -22,9 +22,11 @@
           <object class="GtkLabel" id="GearPosLabel">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
+            <property name="hexpand">True</property>
+            <property name="vexpand">True</property>
             <property name="label" translatable="yes">X</property>
             <attributes>
-              <attribute name="font-desc" value="Sans Bold 64"/>
+              <attribute name="font-desc" value="Sans Bold 80"/>
             </attributes>
           </object>
           <packing>
@@ -37,6 +39,8 @@
           <object class="GtkFrame" id="01Frame">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
+            <property name="hexpand">True</property>
+            <property name="vexpand">True</property>
             <property name="label-xalign">0</property>
             <property name="shadow-type">in</property>
             <child>
@@ -81,7 +85,8 @@
             <property name="can-focus">False</property>
             <property name="valign">center</property>
             <property name="hexpand">True</property>
-            <property name="value">0.52</property>
+            <property name="value">800</property>
+            <property name="max-value">9000</property>
           </object>
           <packing>
             <property name="left-attach">0</property>
@@ -93,6 +98,8 @@
           <object class="GtkFrame" id="00Frame">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
+            <property name="hexpand">True</property>
+            <property name="vexpand">True</property>
             <property name="label-xalign">0</property>
             <property name="shadow-type">in</property>
             <child>
@@ -134,6 +141,8 @@
           <object class="GtkFrame" id="02Frame">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
+            <property name="hexpand">True</property>
+            <property name="vexpand">True</property>
             <property name="label-xalign">0</property>
             <property name="shadow-type">in</property>
             <child>
@@ -172,9 +181,11 @@
           </packing>
         </child>
         <child>
-          <object class="GtkFrame" id="01Frame3">
+          <object class="GtkFrame" id="03Frame">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
+            <property name="hexpand">True</property>
+            <property name="vexpand">True</property>
             <property name="label-xalign">0</property>
             <property name="shadow-type">in</property>
             <child>
@@ -213,9 +224,11 @@
           </packing>
         </child>
         <child>
-          <object class="GtkFrame" id="01Frame4">
+          <object class="GtkFrame" id="10Frame">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
+            <property name="hexpand">True</property>
+            <property name="vexpand">True</property>
             <property name="label-xalign">0</property>
             <property name="shadow-type">in</property>
             <child>
@@ -254,9 +267,11 @@
           </packing>
         </child>
         <child>
-          <object class="GtkFrame" id="01Frame5">
+          <object class="GtkFrame" id="11Frame">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
+            <property name="hexpand">True</property>
+            <property name="vexpand">True</property>
             <property name="label-xalign">0</property>
             <property name="shadow-type">in</property>
             <child>
@@ -295,9 +310,11 @@
           </packing>
         </child>
         <child>
-          <object class="GtkFrame" id="01Frame6">
+          <object class="GtkFrame" id="12Frame">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
+            <property name="hexpand">True</property>
+            <property name="vexpand">True</property>
             <property name="label-xalign">0</property>
             <property name="shadow-type">in</property>
             <child>
@@ -336,9 +353,11 @@
           </packing>
         </child>
         <child>
-          <object class="GtkFrame" id="01Frame7">
+          <object class="GtkFrame" id="13Frame">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
+            <property name="hexpand">True</property>
+            <property name="vexpand">True</property>
             <property name="label-xalign">0</property>
             <property name="shadow-type">in</property>
             <child>
@@ -377,9 +396,11 @@
           </packing>
         </child>
         <child>
-          <object class="GtkFrame" id="01Frame8">
+          <object class="GtkFrame" id="20Frame">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
+            <property name="hexpand">True</property>
+            <property name="vexpand">True</property>
             <property name="label-xalign">0</property>
             <property name="shadow-type">in</property>
             <child>
@@ -418,9 +439,11 @@
           </packing>
         </child>
         <child>
-          <object class="GtkFrame" id="01Frame9">
+          <object class="GtkFrame" id="21Frame">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
+            <property name="hexpand">True</property>
+            <property name="vexpand">True</property>
             <property name="label-xalign">0</property>
             <property name="shadow-type">in</property>
             <child>
@@ -459,9 +482,11 @@
           </packing>
         </child>
         <child>
-          <object class="GtkFrame" id="01Frame10">
+          <object class="GtkFrame" id="22Frame">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
+            <property name="hexpand">True</property>
+            <property name="vexpand">True</property>
             <property name="label-xalign">0</property>
             <property name="shadow-type">in</property>
             <child>
@@ -500,9 +525,11 @@
           </packing>
         </child>
         <child>
-          <object class="GtkFrame" id="01Frame11">
+          <object class="GtkFrame" id="23Frame">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
+            <property name="hexpand">True</property>
+            <property name="vexpand">True</property>
             <property name="label-xalign">0</property>
             <property name="shadow-type">in</property>
             <child>
@@ -541,9 +568,11 @@
           </packing>
         </child>
         <child>
-          <object class="GtkFrame" id="01Frame12">
+          <object class="GtkFrame" id="24Frame">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
+            <property name="hexpand">True</property>
+            <property name="vexpand">True</property>
             <property name="label-xalign">0</property>
             <property name="shadow-type">in</property>
             <child>
@@ -583,5 +612,8 @@
         </child>
       </object>
     </child>
+    <style>
+      <class name="body"/>
+    </style>
   </object>
 </interface>

@@ -4,20 +4,26 @@
 
 
 bool DashApp::update_ui(){
-	int random_num = rand() % 101;
-	ValueLabel00.set_text(std::to_string(random_num));
+	int random_num = rand() % 10;
+	double rand2 = (rand() % 100000) / 10;
+	GearPosLabel->set_text(std::to_string(random_num));
+	RevCounterBar->set_value(rand2);
 	return true;	
 }
 
 DashApp::DashApp(){
+	builder = Gtk::Builder::create_from_file("dashUI.glade");
+	builder->get_widget("MainWindow", MainWindow);
+	builder->get_widget("GearPosLabel", GearPosLabel);
+	builder->get_widget("RevCounterBar", RevCounterBar);
 	
-	ValueLabel00.set_text("Hello World!");
-	add(ValueLabel00);
 	
-	Glib::signal_timeout().connect(sigc::mem_fun(*this, &DashApp::update_ui), 100);
+	Glib::signal_timeout().connect(sigc::mem_fun(*this, &DashApp::update_ui), 30);
 	
-	show_all();
+	MainWindow->show_all();
 }
+
+Gtk::Window* DashApp::get_main_window(){ return MainWindow; }
 
 
 
