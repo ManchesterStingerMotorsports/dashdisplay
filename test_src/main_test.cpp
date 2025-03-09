@@ -260,7 +260,7 @@ bool DashApp::update_ui(){
 }
 
 DashApp::DashApp(shared_ptr<SharedData> n_shared_data){
-	builder = Gtk::Builder::create_from_file("dashUI.glade");
+	builder = Gtk::Builder::create_from_file("resources/dashUI.glade");
 	builder->get_widget("MainWindow", MainWindow);
 	builder->get_widget("GearPosLabel", GearPosLabel);
 	builder->get_widget("RevCounterBar", RevCounterBar);

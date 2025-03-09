@@ -1,16 +1,35 @@
 
 #include "display.h"
-#include "decode.h"
+#include "shareddata.h"
+#include "datafield.h"
+#include "canbus.h"
+#include "canpacket.h"
 
 #include <memory>
 #include <thread>
 #include <vector>
+#include <iostream>
 
+using namespace std;
 
+void dummy_display(shared_ptr<SharedData> dashData){
+	
+	while(true){
+		vector<shared_ptr<DataField> > datapoints = dashData->get_points();
+		
+		system("clear");
+		for (shared_ptr<DataField> dp : datapoints){
+			cout << dp->title << ": " << dp->value << endl;
+		}
+		
+		this_thread::sleep_for(chrono::milliseconds(200));
+	}
+	
+}
 
 int app_boot_up(shared_ptr<SharedData> shared_data){
 auto app = Gtk::Application::create("com.formulastudentuom.dashdisplay");
-DashApp window = DashApp();
+DashApp window = DashApp(shared_data);
 
 return app->run(*window.get_main_window());
 }
