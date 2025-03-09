@@ -1,4 +1,7 @@
 
+#include "decode.h"
+
+
 #include <linux/can.h>
 #include <sys/socket.h>
 #include <sys/ioctl.h>
@@ -14,74 +17,53 @@
 #include <string>
 #include <iostream>
 #include <cstring>
-#include "display.h"
 
 using namespace std;
 
 /* Data field class which stores values against their title whilst also
  * holding relevant unit, limits and raw data scaling information
  */
-class DataField{
-	public:
-		string title;
-		double value;
-		double gain;
-		double offset;
-		double low_lim;
-		double upp_lim;
-		int    bytes;
-		string unit;
+DataField::DataField(string n_title, double n_gain, double n_offset, int n_bytes, string n_unit){
+	title  = n_title;
+	gain   = n_gain;
+	offset = n_offset;
+	bytes  = n_bytes;
+	unit   = n_unit;
+}
 		
-		DataField(string n_title, double n_gain, double n_offset, int n_bytes, string n_unit){
-			title  = n_title;
-			gain   = n_gain;
-			offset = n_offset;
-			bytes  = n_bytes;
-			unit   = n_unit;
-		}
-		
-		void update_raw(int raw_val){
-			value = raw_val * gain + offset;
-		}
-		
-		void update_direct(double new_val){
-			value = new_val;  
-		}
-};
+void DataField::update_raw(int raw_val){
+	value = raw_val * gain + offset;
+}
+
+
 
 /* Class for managing a thread safe data structure keeping a vector
  * of pointers to DataField objects
  */
-class SharedData{
-	private:
-		vector<shared_ptr<DataField> > datapoints; 
-		mutable shared_mutex data_mutex;
-	
-	public:
-		void add_point(shared_ptr<DataField> new_field){
-			unique_lock<shared_mutex> lock(data_mutex);
-			datapoints.push_back(new_field);
-		}
+void SharedData::add_point(shared_ptr<DataField> new_field){
+	unique_lock<shared_mutex> lock(data_mutex);
+	datapoints.push_back(new_field);
+}
 		
-		/*Implements double buffering for data renewal
-		 * The producer (in this case the CAN bus) prepares a new vector
-		 * of points (updating only those which are modified). This is 
-		 * then swapped with the existing set minimising lock time
-		 */
-		void update_data(vector<shared_ptr<DataField> > n_datapoints){
-			unique_lock<shared_mutex> lock(data_mutex);
-			datapoints.swap(n_datapoints);
-		}
-		
-		int get_dps_size(){
-			return datapoints.size();
-		}
-		
-		vector<shared_ptr<DataField> > get_points(){
-			shared_lock<shared_mutex> lock(data_mutex);
-			return datapoints;
-		}
-};
+/*Implements double buffering for data renewal
+ * The producer (in this case the CAN bus) prepares a new vector
+ * of points (updating only those which are modified). This is 
+ * then swapped with the existing set minimising lock time
+ */
+void SharedData::update_data(vector<shared_ptr<DataField> > n_datapoints){
+	unique_lock<shared_mutex> lock(data_mutex);
+	datapoints.swap(n_datapoints);
+}
+
+int SharedData::get_dps_size(){
+	return datapoints.size();
+}
+
+vector<shared_ptr<DataField> > SharedData::get_points(){
+	shared_lock<shared_mutex> lock(data_mutex);
+	return datapoints;
+}
+
 
 
 /* Structure defining the data field objects associated with a packet
@@ -89,45 +71,41 @@ class SharedData{
  * individual frames
  * The sequence that the packet contents is in DOES MATTER
  */
-class CANPacket{
-	public:
-		int packet_id;
-		vector<int> contents_idxs;
-		shared_ptr<SharedData> data;
+
+
+/* Packets maintain a vector of indexes to the DataField pointer
+ * in the SharedData object relating to the dfs in this packet
+ */
+CANPacket::CANPacket(int n_packet_id, shared_ptr<SharedData> n_data, vector<shared_ptr<DataField> > n_contents){
+	packet_id = n_packet_id;
+	data      = n_data;
+	for (shared_ptr<DataField> dp : n_contents){
+		data->add_point(dp);
+		contents_idxs.push_back(data->get_dps_size() - 1);
+	}
+}
+
+void CANPacket::update_dps(__u8 can_data[8]){
+	vector<shared_ptr<DataField> > new_data;
+	vector<shared_ptr<DataField> > old_data = data->get_points();
+	for (size_t i=0; i<old_data.size(); i++){
+		new_data.push_back(old_data.at(i));
+	}
+	int array_consumed = 0;
+	for (int i : contents_idxs){
+		shared_ptr<DataField> updated_field = make_shared<DataField>(*old_data.at(i));
+		int nd = 0;
+		for (int b=0; b<updated_field->bytes; b++){
+			nd = (nd << 8) | can_data[array_consumed + b];
+		}
+		updated_field->update_raw(nd);
+		array_consumed += updated_field->bytes;
+		new_data.at(i) = updated_field;
+	}
 	
-		/* Packets maintain a vector of indexes to the DataField pointer
-		 * in the SharedData object relating to the dfs in this packet
-		 */
-		CANPacket(int n_packet_id, shared_ptr<SharedData> n_data, vector<shared_ptr<DataField> > n_contents){
-			packet_id = n_packet_id;
-			data      = n_data;
-			for (shared_ptr<DataField> dp : n_contents){
-				data->add_point(dp);
-				contents_idxs.push_back(data->get_dps_size() - 1);
-			}
-		}
-		
-		void update_dps(__u8 can_data[8]){
-			vector<shared_ptr<DataField> > new_data;
-			vector<shared_ptr<DataField> > old_data = data->get_points();
-			for (size_t i=0; i<old_data.size(); i++){
-				new_data.push_back(old_data.at(i));
-			}
-			int array_consumed = 0;
-			for (int i : contents_idxs){
-				shared_ptr<DataField> updated_field = make_shared<DataField>(*old_data.at(i));
-				int nd = 0;
-				for (int b=0; b<updated_field->bytes; b++){
-					nd = (nd << 8) | can_data[array_consumed + b];
-				}
-				updated_field->update_raw(nd);
-				array_consumed += updated_field->bytes;
-				new_data.at(i) = updated_field;
-			}
-			
-			data->update_data(new_data);
-		}
-};
+	data->update_data(new_data);
+}
+
 
 
 class CANBus{
@@ -248,47 +226,3 @@ void dummy_display(shared_ptr<SharedData> dashData){
 	
 }
 
-
-int app_boot_up(shared_ptr<SharedData> shared_data){
-	auto app = Gtk::Application::create("com.formulastudentuom.dashdisplay");
-	DashApp window = DashApp();
-	return app->run(*window.get_main_window());
-	}
-
-
-int main(){
-	
-	system("sudo ip link set can0 up type can bitrate 1000000 \
-		&& sudo ip link set can1 up type can bitrate 1000000");
-	
-	shared_ptr<SharedData> dashData = make_shared<SharedData>();
-	
-	vector<shared_ptr<DataField> > pk_360 = {
-			make_shared<DataField>("RPM", 1, 0, 2, "RPM"),
-			make_shared<DataField>("MAP", 0.1, 0, 2, "kPa"),
-			make_shared<DataField>("Throttle Pos.", 0.1, 0, 2, "%")
-			};
-	
-	vector<shared_ptr<DataField> > pk_3E0 = {
-			make_shared<DataField>("Coolant Temp.", 0.1, 0, 2, "C"),
-			make_shared<DataField>("Air Temp.", 0.1, 0, 2, "C"),
-			make_shared<DataField>("Fuel Temp.", 0.1, 0, 2, "C"),
-			make_shared<DataField>("Oil Temp.", 0.1, 0, 2, "C")
-			};
-	
-	CANBus bus;
-	bus.start_can();
-	//bus.dump_packets(50);
-	bus.add_packet(0x360, move(make_unique<CANPacket>(0x360, dashData, pk_360)));
-	bus.add_packet(0x3E0, move(make_unique<CANPacket>(0x3E0, dashData, pk_3E0)));
-	
-	
-	
-	
-	thread producer(&CANBus::listen, &bus, dashData);
-	thread consumer(app_boot_up, dashData);
-	
-	producer.join();
-	consumer.join();
-	return 0;
-	}

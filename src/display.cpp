@@ -1,4 +1,5 @@
 #include "display.h"
+
 #include <chrono>
 #include <cstdlib>
 
@@ -11,7 +12,9 @@ bool DashApp::update_ui(){
 	return true;	
 }
 
-DashApp::DashApp(){
+DashApp::DashApp(shared_ptr<SharedData> n_shared_data){
+	shared_data = n_shared_data;
+	
 	builder = Gtk::Builder::create_from_file("dashUI.glade");
 	builder->get_widget("MainWindow", MainWindow);
 	builder->get_widget("GearPosLabel", GearPosLabel);
@@ -19,7 +22,7 @@ DashApp::DashApp(){
 	
 	
 	Glib::signal_timeout().connect(sigc::mem_fun(*this, &DashApp::update_ui), 30);
-	
+	MainWindow->fullscreen();
 	MainWindow->show_all();
 }
 
