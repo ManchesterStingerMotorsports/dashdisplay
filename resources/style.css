@@ -1,0 +1,25 @@
+
+.body{
+	background-color: #111111;
+	color: #FFFFFF;
+}
+
+.dataframe{
+	margin: 5px;
+	
+	border-color: #00FF00;
+}
+
+.overlimit{
+	color: #000000;
+	background-color: #FF0000;
+}
+
+.underlimit{
+	background-color: #0000FF;
+}
+
+#RevCounterBar{
+	
+}
+

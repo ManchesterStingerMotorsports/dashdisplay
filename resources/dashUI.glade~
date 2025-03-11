@@ -61,6 +61,9 @@
                     <property name="ellipsize">end</property>
                     <property name="single-line-mode">True</property>
                     <property name="max-width-chars">8</property>
+                    <attributes>
+                      <attribute name="font-desc" value="Sans Bold 18"/>
+                    </attributes>
                   </object>
                 </child>
               </object>
@@ -181,6 +184,9 @@
                     <property name="ellipsize">end</property>
                     <property name="single-line-mode">True</property>
                     <property name="max-width-chars">8</property>
+                    <attributes>
+                      <attribute name="font-desc" value="Sans Bold 18"/>
+                    </attributes>
                   </object>
                 </child>
               </object>
@@ -227,6 +233,9 @@
                     <property name="ellipsize">end</property>
                     <property name="single-line-mode">True</property>
                     <property name="max-width-chars">8</property>
+                    <attributes>
+                      <attribute name="font-desc" value="Sans Bold 18"/>
+                    </attributes>
                   </object>
                 </child>
               </object>
@@ -273,6 +282,9 @@
                     <property name="ellipsize">end</property>
                     <property name="single-line-mode">True</property>
                     <property name="max-width-chars">8</property>
+                    <attributes>
+                      <attribute name="font-desc" value="Sans Bold 18"/>
+                    </attributes>
                   </object>
                 </child>
               </object>
@@ -319,6 +331,9 @@
                     <property name="ellipsize">end</property>
                     <property name="single-line-mode">True</property>
                     <property name="max-width-chars">8</property>
+                    <attributes>
+                      <attribute name="font-desc" value="Sans Bold 18"/>
+                    </attributes>
                   </object>
                 </child>
               </object>
@@ -365,6 +380,9 @@
                     <property name="ellipsize">end</property>
                     <property name="single-line-mode">True</property>
                     <property name="max-width-chars">8</property>
+                    <attributes>
+                      <attribute name="font-desc" value="Sans Bold 18"/>
+                    </attributes>
                   </object>
                 </child>
               </object>
@@ -411,6 +429,9 @@
                     <property name="ellipsize">end</property>
                     <property name="single-line-mode">True</property>
                     <property name="max-width-chars">8</property>
+                    <attributes>
+                      <attribute name="font-desc" value="Sans Bold 18"/>
+                    </attributes>
                   </object>
                 </child>
               </object>
@@ -457,6 +478,9 @@
                     <property name="ellipsize">end</property>
                     <property name="single-line-mode">True</property>
                     <property name="max-width-chars">8</property>
+                    <attributes>
+                      <attribute name="font-desc" value="Sans Bold 18"/>
+                    </attributes>
                   </object>
                 </child>
               </object>
@@ -503,6 +527,9 @@
                     <property name="ellipsize">end</property>
                     <property name="single-line-mode">True</property>
                     <property name="max-width-chars">8</property>
+                    <attributes>
+                      <attribute name="font-desc" value="Sans Bold 18"/>
+                    </attributes>
                   </object>
                 </child>
               </object>
@@ -549,6 +576,9 @@
                     <property name="ellipsize">end</property>
                     <property name="single-line-mode">True</property>
                     <property name="max-width-chars">8</property>
+                    <attributes>
+                      <attribute name="font-desc" value="Sans Bold 18"/>
+                    </attributes>
                   </object>
                 </child>
               </object>
@@ -595,6 +625,9 @@
                     <property name="ellipsize">end</property>
                     <property name="single-line-mode">True</property>
                     <property name="max-width-chars">8</property>
+                    <attributes>
+                      <attribute name="font-desc" value="Sans Bold 18"/>
+                    </attributes>
                   </object>
                 </child>
               </object>
@@ -641,6 +674,9 @@
                     <property name="ellipsize">end</property>
                     <property name="single-line-mode">True</property>
                     <property name="max-width-chars">8</property>
+                    <attributes>
+                      <attribute name="font-desc" value="Sans Bold 18"/>
+                    </attributes>
                   </object>
                 </child>
               </object>

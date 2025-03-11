@@ -12,6 +12,7 @@ DataField::DataField(std::string n_title, double n_gain, double n_offset, int n_
 	offset = n_offset;
 	bytes  = n_bytes;
 	unit   = n_unit;
+	value  = 0;
 }
 		
 void DataField::update_raw(int raw_val){

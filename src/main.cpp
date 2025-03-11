@@ -28,10 +28,17 @@ void dummy_display(shared_ptr<SharedData> dashData){
 }
 
 int app_boot_up(shared_ptr<SharedData> shared_data){
-auto app = Gtk::Application::create("com.formulastudentuom.dashdisplay");
-DashApp window = DashApp(shared_data);
-
-return app->run(*window.get_main_window());
+	auto app = Gtk::Application::create("com.formulastudentuom.dashdisplay");
+	DashApp window = DashApp(shared_data);
+	
+	auto styling = Gtk::CssProvider::create();
+	styling->load_from_path("/home/fsdash/dash/resources/style.css");
+	auto screen = Gdk::Screen::get_default();
+	auto context = Gtk::StyleContext::create();
+	
+	context->add_provider_for_screen(screen, styling, GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+	
+	return app->run(*window.get_main_window());
 }
 
 
