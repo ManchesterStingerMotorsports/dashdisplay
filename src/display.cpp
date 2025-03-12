@@ -1,6 +1,7 @@
 #include "display.h"
 #include "datafield.h"
 #include <chrono>
+#include <iostream>
 #include <cstdlib>
 #include <vector>
 #include <string>
@@ -19,16 +20,22 @@ bool DashApp::update_ui(){
 }
 
 
-/*
 void DashApp::init_ui(){
 	std::vector<std::shared_ptr<DataField>> init_data = shared_data->get_points();
-	for (const auto& fr : frame_layout_map){
-		std::shared_ptr<DataField> dp = init_data.at(fr.second);
-		std::string header = dp->title + " (" + dp->unit + ")";
-		fr.first->set_label(header);
+	for (const auto& fr : value_layout_map){
+		Gtk::Container* gen_cont = fr.first->get_parent()->get_parent();
+		auto frame = dynamic_cast<Gtk::Frame*>(gen_cont);
+		if(frame){
+			std::shared_ptr<DataField> dp = init_data.at(fr.second);
+			std::string header = dp->title + " (" + dp->unit + ")";
+			frame->set_label(header);
+			}
+		else{
+			std::cout << "The retrieved parent of a label was " << typeid(*gen_cont).name() << " when it should have been a frame!" << std::endl;
+			}
 		}
 	}
-*/	
+	
 
 DashApp::DashApp(std::shared_ptr<SharedData> n_shared_data){
 	shared_data = n_shared_data;
@@ -69,9 +76,9 @@ DashApp::DashApp(std::shared_ptr<SharedData> n_shared_data){
 			{Value23, 0}
 		};
 	
-	//init_ui();
+	init_ui();
 	
-	Glib::signal_timeout().connect(sigc::mem_fun(*this, &DashApp::update_ui), 1000);
+	Glib::signal_timeout().connect(sigc::mem_fun(*this, &DashApp::update_ui), 35);
 	MainWindow->fullscreen();
 	MainWindow->show_all();
 }

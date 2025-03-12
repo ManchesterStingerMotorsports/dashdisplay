@@ -4,10 +4,16 @@
 	color: #FFFFFF;
 }
 
+
+
 .dataframe{
-	margin: 5px;
-	
+	margin-left: 5px;
+	margin-right: 5px;
+	margin-top: 0px;
+	margin-bottom:0px;
 	border-color: #00FF00;
+	font-size: 16px;
+	
 }
 
 .overlimit{
@@ -16,10 +22,15 @@
 }
 
 .underlimit{
+	color: #FFFFFF;
 	background-color: #0000FF;
 }
 
-#RevCounterBar{
-	
+#RevCounterBar block.empty{
+	background-color: #000000;
+}
+
+#RevCounterBar block.filled{
+	background-color: #00FF00;
 }
 
