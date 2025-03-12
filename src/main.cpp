@@ -50,24 +50,45 @@ int main(int argc, char* argv[]){
 	shared_ptr<SharedData> dashData = make_shared<SharedData>();
 	
 	vector<shared_ptr<DataField> > pk_360 = {
-			make_shared<DataField>("RPM", 1, 0, 2, "RPM"),
-			make_shared<DataField>("MAP", 0.1, 0, 2, "kPa"),
-			make_shared<DataField>("Throttle Pos.", 0.1, 0, 2, "%")
+			make_shared<DataField>("RPM", 1, 0, 0, 2, "RPM"),
+			make_shared<DataField>("MAP", 0.1, 0, 2, 2, "kPa"),
+			make_shared<DataField>("Throttle Pos.", 0.1, 0, 4, 2, "%")
+			};
+			
+	vector<shared_ptr<DataField> > pk_361 = {
+			make_shared<DataField>("Fuel Pres.", 0.1, -101.3, 0, 2, "kPa"),
+			make_shared<DataField>("Oil Pres.", 0.1, -101.3, 2, 2, "kPa")
+			};
+			
+	vector<shared_ptr<DataField> > pk_370 = {
+			make_shared<DataField>("Speed", 0.1, 0, 0, 2, "km/h"),
+			};
+			
+	vector<shared_ptr<DataField> > pk_372 = {
+			make_shared<DataField>("Battery Volts", 0.1, 0, 0, 2, "V"),
 			};
 	
 	vector<shared_ptr<DataField> > pk_3E0 = {
-			make_shared<DataField>("Coolant Temp.", 0.1, 0, 2, "C"),
-			make_shared<DataField>("Air Temp.", 0.1, 0, 2, "C"),
-			make_shared<DataField>("Fuel Temp.", 0.1, 0, 2, "C"),
-			make_shared<DataField>("Oil Temp.", 0.1, 0, 2, "C")
+			make_shared<DataField>("Coolant Temp.", 0.1, -273, 0, 2, "C"),
+			make_shared<DataField>("Air Temp.", 0.1, -273, 2, 2, "C"),
+			make_shared<DataField>("Oil Temp.", 0.1, -273, 6, 2, "C")
 			};
+			
+	vector<shared_ptr<DataField> > pk_477 = {
+			make_shared<DataField>("Limiter", 1, 0, 0, 2, "RPM"),
+			};
+			
+	
 	
 	CANBus bus;
 	bus.start_can();
-	//bus.dump_packets(50);
-	bus.add_packet(0x360, move(make_unique<CANPacket>(0x360, dashData, pk_360)));
-	bus.add_packet(0x3E0, move(make_unique<CANPacket>(0x3E0, dashData, pk_3E0)));
 	
+	bus.add_packet(0x360, move(make_unique<CANPacket>(0x360, dashData, pk_360)));
+	bus.add_packet(0x361, move(make_unique<CANPacket>(0x361, dashData, pk_361)));
+	bus.add_packet(0x370, move(make_unique<CANPacket>(0x370, dashData, pk_370)));
+	bus.add_packet(0x372, move(make_unique<CANPacket>(0x372, dashData, pk_372)));
+	bus.add_packet(0x3E0, move(make_unique<CANPacket>(0x3E0, dashData, pk_3E0)));
+	bus.add_packet(0x477, move(make_unique<CANPacket>(0x477, dashData, pk_477)));
 	
 	
 	

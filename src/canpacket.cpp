@@ -5,9 +5,7 @@
 /* Structure defining the data field objects associated with a packet
  * Separate from the individual CAN struct which contain specific,
  * individual frames
- * The sequence that the packet contents is in DOES MATTER
  */
-
 
 /* Packets maintain a vector of indexes to the DataField pointer
  * in the SharedData object relating to the dfs in this packet
@@ -27,15 +25,16 @@ void CANPacket::update_dps(__u8 can_data[8]){
 	for (size_t i=0; i<old_data.size(); i++){
 		new_data.push_back(old_data.at(i));
 	}
-	int array_consumed = 0;
 	for (int i : contents_idxs){
 		std::shared_ptr<DataField> updated_field = std::make_shared<DataField>(*old_data.at(i));
+		
+		// Big-endian decode
 		int nd = 0;
-		for (int b=0; b<updated_field->bytes; b++){
-			nd = (nd << 8) | can_data[array_consumed + b];
+		for (int b=0; b < updated_field->length_bytes; b++){
+			nd = (nd << 8) | can_data[updated_field->start_byte + b];
 		}
+		
 		updated_field->update_raw(nd);
-		array_consumed += updated_field->bytes;
 		new_data.at(i) = updated_field;
 	}
 	

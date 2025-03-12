@@ -14,7 +14,14 @@ bool DashApp::update_ui(){
 	//GearPosLabel->set_text
 	for (const auto& fr : value_layout_map){
 		std::shared_ptr<DataField> dp = iteration_data.at(fr.second);
-		fr.first->set_text(std::to_string(dp->value));
+		double display_val = dp->value;
+		/*if (display_val > dp->upp_lim){fr.first->add_css_class("overlimit");}
+		else if (display_val < dp->low_lim){fr.first->add_css_class("underlimit");}
+		else{
+			fr.first->remove_css_class("overlimit");
+			fr.first->remove_css_class("underlimit");
+			}*/
+		fr.first->set_text(std::to_string(display_val));
 	}
 	return true;	
 }
@@ -62,17 +69,17 @@ DashApp::DashApp(std::shared_ptr<SharedData> n_shared_data){
 	rpm_index = 0;
 	
 	value_layout_map = {
-			{Value00, 0},
-			{Value01, 1},
-			{Value02, 2},
-			{Value03, 3},
-			{Value10, 4},
-			{Value11, 5},
-			{Value12, 6},
-			{Value13, 0},
-			{Value20, 0},
-			{Value21, 0},
-			{Value22, 0},
+			{Value00, 2},
+			{Value01, 5},
+			{Value02, 0},
+			{Value03, 6},
+			{Value10, 1},
+			{Value11, 7},
+			{Value12, 9},
+			{Value13, 8},
+			{Value20, 3},
+			{Value21, 4},
+			{Value22, 10},
 			{Value23, 0}
 		};
 	

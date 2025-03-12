@@ -5,12 +5,11 @@
 }
 
 
-
 .dataframe{
 	margin-left: 5px;
 	margin-right: 5px;
 	margin-top: 0px;
-	margin-bottom:0px;
+	margin-bottom: 0px;
 	border-color: #00FF00;
 	font-size: 16px;
 	
@@ -26,11 +25,9 @@
 	background-color: #0000FF;
 }
 
-#RevCounterBar block.empty{
+levelbar block.empty{
 	background-color: #000000;
 }
 
-#RevCounterBar block.filled{
-	background-color: #00FF00;
-}
+
 

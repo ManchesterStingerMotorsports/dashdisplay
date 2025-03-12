@@ -12,10 +12,11 @@ class DataField{
 		double offset;
 		double low_lim;
 		double upp_lim;
-		int    bytes;
+		int    start_byte;
+		int    length_bytes;
 		std::string unit;
 		
-		DataField(std::string n_title, double n_gain, double n_offset, int n_bytes, std::string n_unit);
+		DataField(std::string n_title, double n_gain, double n_offset, int n_start, int n_bytes, std::string n_unit);
 		void update_raw(int raw_val);
 		
 	};
