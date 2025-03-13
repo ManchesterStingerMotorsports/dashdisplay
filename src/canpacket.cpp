@@ -1,6 +1,6 @@
 
 #include "canpacket.h"
-
+#include <iostream>
 
 /* Structure defining the data field objects associated with a packet
  * Separate from the individual CAN struct which contain specific,
@@ -13,6 +13,7 @@
 CANPacket::CANPacket(int n_packet_id, std::shared_ptr<SharedData> n_data, std::vector<std::shared_ptr<DataField> > n_contents){
 	packet_id = n_packet_id;
 	data      = n_data;
+	std::cout << std::hex << n_packet_id << " created successfully" << std::endl;
 	for (std::shared_ptr<DataField> dp : n_contents){
 		data->add_point(dp);
 		contents_idxs.push_back(data->get_dps_size() - 1);

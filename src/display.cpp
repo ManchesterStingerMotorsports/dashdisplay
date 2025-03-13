@@ -13,15 +13,17 @@ bool DashApp::update_ui(){
 	RevCounterBar->set_value(iteration_data.at(rpm_index)->value);
 	//GearPosLabel->set_text
 	for (const auto& fr : value_layout_map){
-		std::shared_ptr<DataField> dp = iteration_data.at(fr.second);
-		double display_val = dp->value;
-		/*if (display_val > dp->upp_lim){fr.first->add_css_class("overlimit");}
-		else if (display_val < dp->low_lim){fr.first->add_css_class("underlimit");}
-		else{
-			fr.first->remove_css_class("overlimit");
-			fr.first->remove_css_class("underlimit");
-			}*/
-		fr.first->set_text(std::to_string(display_val));
+		if(fr.second >= 0){
+			std::shared_ptr<DataField> dp = iteration_data.at(fr.second);
+			double display_val = dp->value;
+			/*if (display_val > dp->upp_lim){fr.first->add_css_class("overlimit");}
+			else if (display_val < dp->low_lim){fr.first->add_css_class("underlimit");}
+			else{
+				fr.first->remove_css_class("overlimit");
+				fr.first->remove_css_class("underlimit");
+				}*/
+			fr.first->set_text(std::to_string((int)display_val));
+		}
 	}
 	return true;	
 }
@@ -30,6 +32,7 @@ bool DashApp::update_ui(){
 void DashApp::init_ui(){
 	std::vector<std::shared_ptr<DataField>> init_data = shared_data->get_points();
 	for (const auto& fr : value_layout_map){
+		if(fr.second >= 0){
 		Gtk::Container* gen_cont = fr.first->get_parent()->get_parent();
 		auto frame = dynamic_cast<Gtk::Frame*>(gen_cont);
 		if(frame){
@@ -41,6 +44,8 @@ void DashApp::init_ui(){
 			std::cout << "The retrieved parent of a label was " << typeid(*gen_cont).name() << " when it should have been a frame!" << std::endl;
 			}
 		}
+	}
+		
 	}
 	
 
@@ -82,7 +87,7 @@ DashApp::DashApp(std::shared_ptr<SharedData> n_shared_data){
 			{Value22, 10},
 			{Value23, 0}
 		};
-	
+
 	init_ui();
 	
 	Glib::signal_timeout().connect(sigc::mem_fun(*this, &DashApp::update_ui), 35);

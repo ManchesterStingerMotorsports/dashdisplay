@@ -2,6 +2,7 @@
 #include "shareddata.h"
 
 #include <mutex>
+#include <iostream>
 
 
 /* Class for managing a thread safe data structure keeping a vector
@@ -9,6 +10,7 @@
  */
 void SharedData::add_point(std::shared_ptr<DataField> new_field){
 	std::unique_lock<std::shared_mutex> lock(data_mutex);
+	//std::cout << "DF PTR was " << sizeof(new_field) << " bytes" << std::endl;
 	datapoints.push_back(new_field);
 }
 		
@@ -28,5 +30,6 @@ int SharedData::get_dps_size(){
 
 std::vector<std::shared_ptr<DataField> > SharedData::get_points(){
 	std::shared_lock<std::shared_mutex> lock(data_mutex);
+	//std::cout << "Data vector occupied " << sizeof(datapoints) << " bytes" << std::endl;
 	return datapoints;
 }

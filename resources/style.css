@@ -29,5 +29,9 @@ levelbar block.empty{
 	background-color: #000000;
 }
 
+levelbar block.filled{
+	background-color: #00FF00;
+}
+
 
 
