@@ -5,6 +5,8 @@
 #include <gtkmm.h>
 #include <memory>
 #include <map>
+#include <string>
+#include <vector>
 
 
 class DashApp : public Gtk::Window {
@@ -19,6 +21,8 @@ class DashApp : public Gtk::Window {
 		
 		std::shared_ptr<SharedData> shared_data;
 		std::map<Gtk::Label*, int> value_layout_map; 
+		
+		std::vector<std::string> gear_enumeration;
 		
 		int gear_index;
 		int rpm_index;

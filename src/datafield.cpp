@@ -17,7 +17,7 @@ DataField::DataField(std::string n_title, double n_gain, double n_offset, int n_
 	upp_lim = n_upp;
 	unit   = n_unit;
 	value  = 0;
-	std::cout << "Initialised DF: " << title << std::endl;
+	//std::cout << "Initialised DF: " << title << std::endl;
 }
 		
 void DataField::update_raw(int raw_val){

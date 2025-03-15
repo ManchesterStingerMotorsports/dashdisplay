@@ -11,7 +11,8 @@
 bool DashApp::update_ui(){
 	std::vector<std::shared_ptr<DataField>> iteration_data = shared_data->get_points();
 	RevCounterBar->set_value(iteration_data.at(rpm_index)->value);
-	//GearPosLabel->set_text
+	int gear_pos = (int)iteration_data.at(gear_index)->value;
+	if (gear_pos < (int)gear_enumeration.size()){GearPosLabel->set_text(gear_enumeration.at(gear_pos));}
 	for (const auto& fr : value_layout_map){
 		if(fr.second >= 0){
 			std::shared_ptr<DataField> dp = iteration_data.at(fr.second);
@@ -69,8 +70,9 @@ DashApp::DashApp(std::shared_ptr<SharedData> n_shared_data){
 	builder->get_widget("Value22", Value22);
 	builder->get_widget("Value23", Value23);
 	
+	gear_enumeration = {"N", "1", "2", "3", "4", "5"};
 	
-	gear_index = 0;
+	gear_index = 11;
 	rpm_index = 0;
 	
 	value_layout_map = {
@@ -85,7 +87,7 @@ DashApp::DashApp(std::shared_ptr<SharedData> n_shared_data){
 			{Value20, 3},
 			{Value21, 4},
 			{Value22, 10},
-			{Value23, 0}
+			{Value23, 13}
 		};
 
 	init_ui();

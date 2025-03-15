@@ -27,6 +27,7 @@ void dummy_display(shared_ptr<SharedData> dashData){
 	
 }
 
+
 int app_boot_up(shared_ptr<SharedData> shared_data){
 	auto app = Gtk::Application::create("com.formulastudentuom.dashdisplay");
 	DashApp window = DashApp(shared_data);
@@ -37,8 +38,9 @@ int app_boot_up(shared_ptr<SharedData> shared_data){
 	auto context = Gtk::StyleContext::create();
 	
 	context->add_provider_for_screen(screen, styling, GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+	app->run(*window.get_main_window());
 	
-	return app->run(*window.get_main_window());
+	return 0;
 }
 
 
@@ -65,8 +67,8 @@ int main(int argc, char* argv[]){
 	bus.add_packet(0x360, move(make_unique<CANPacket>(0x360, dashData, pk_360)));
 			
 	vector<shared_ptr<DataField> > pk_361 = {
-			make_shared<DataField>("Fuel Pres.", 0.0145, -101.3, 0, 2, 20, 50, "PSI"),
-			make_shared<DataField>("Oil Pres.", 0.1, -101.3, 2, 2, 0, 500, "kPa")
+			make_shared<DataField>("Fuel Pres.", 0.0145, -14.7, 0, 2, 20, 50, "PSI"),
+			make_shared<DataField>("Oil Pres.", 0.0145, -14.7, 2, 2, 5, 10, "PSI")
 			};
 	bus.add_packet(0x361, move(make_unique<CANPacket>(0x361, dashData, pk_361)));
 			
@@ -91,6 +93,16 @@ int main(int argc, char* argv[]){
 			make_shared<DataField>("IGN Angle", 0.1, 0, 4, 2, -180, 180, "DEG")
 			};
 	bus.add_packet(0x3EB, move(make_unique<CANPacket>(0x3EB, dashData, pk_3EB)));
+	
+	vector<shared_ptr<DataField> > pk_469 = {
+			make_shared<DataField>("ECU Temp.", 0.1, -273, 0, 2, 20, 50, "C"),
+			};
+	bus.add_packet(0x469, move(make_unique<CANPacket>(0x469, dashData, pk_469)));
+	
+	vector<shared_ptr<DataField> > pk_470 = {
+			make_shared<DataField>("Gear", 1, 0, 7, 1, 0, 7, ""),
+			};
+	bus.add_packet(0x470, move(make_unique<CANPacket>(0x470, dashData, pk_470)));
 			
 	vector<shared_ptr<DataField> > pk_477 = {
 			make_shared<DataField>("Limiter", 1, 0, 0, 2, -1, 15000, "RPM"),

@@ -9,10 +9,10 @@ TARGET = fsdash
 all: $(TARGET)
 
 $(TARGET): $(OBJ)
-	$(CXX) $(CXXFLAGS) $(OBJ) -o $(TARGET) $(LIBS)
+	$(CXX) $(CXXFLAGS) $(OBJ) -g -o $(TARGET) $(LIBS)
 
 %.o: %.cpp
-	$(CXX) $(CXXFLAGS) $(INCLUDE) -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(INCLUDE) -g -c $< -o $@
 	
 clean:
 	rm -f src/*.o $(TARGET)
