@@ -5,11 +5,11 @@ import os
 
 
 class DataField:
-	def __init__(self, field_name, packet, sp, ep, gain, offset, lower_bound, upper_bound, variation_method):
+	def __init__(self, field_name, gain, offset, start_byte, byte_len, lower_bound, upper_bound, packet, variation_method):
 		self.field_name = field_name
 		self.packet = packet
-		self.sp = sp
-		self.ep = ep
+		self.start_byte = start_byte
+		self.byte_len = byte_len
 		self.changes = 0
 		self.value = 0
 		self.gain = gain
@@ -73,7 +73,7 @@ class DataField:
 		self.value = round(new_val, 2)
 
 	def oscillate(self):
-		return (0.5*(self.upp_b - self.low_b)) * (1 + math.sin(self.changes*(math.pi/180)))
+		return (0.5*(self.upp_b - self.low_b)) * (1 + math.sin(2*self.changes*(math.pi/180)))
 
 	def randomise(self):
 		return self.low_b + random.random()*(self.upp_b - self.low_b)
@@ -86,16 +86,13 @@ class DataField:
 
 	def encode(self):
 		raw_val = int((self.value - self.offset) // self.gain)
-		max_b = self.ep - self.sp + 1
-		if raw_val > (16**(2*max_b) - 1):
-			print("Value will not fit in allocated space in the packet!")
-		else:
-			self.packet.data |= (raw_val << self.sp*8)
-
-
-
+		mask  = 0xFF
+		for b in range(self.byte_len):
+			self.packet.data[self.start_byte + self.byte_len - (b+1)] = int((raw_val >> b*8) & mask)
 
 		
+
+
 
 ########### Other Methods ############
 
@@ -106,35 +103,58 @@ class DataField:
 class CAN_Packet:
 	def __init__(self, p_id):
 		self.p_id = p_id
-		self.data = 0
+		self.data = [0, 0, 0, 0, 0, 0, 0, 0]
 
 	def send_packet(self):
-		#print(f"./canusb -d /dev/ttyUSB0 -s 1000000 -n 1 -i {self.p_id:0{3}x} -j {self.data:0{16}x}")
-		os.system(f"./canusb -d /dev/ttyUSB0 -s 1000000 -n 1 -i {self.p_id:0{3}x} -j {self.data:0{16}x}")
+		string_form = ""
+		for byte in self.data:
+			string_form += f"{byte:0{2}x}"
+		#print(f"./canusb -d /dev/ttyUSB0 -s 1000000 -n 1 -i {self.p_id:0{3}x} -j {string_form}")
+		os.system(f"./canusb -d /dev/ttyUSB0 -s 1000000 -n 1 -i {self.p_id:0{3}x} -j {string_form}")
 
 	def clear_packet(self):
-		self.data = 0
+		self.data = [0, 0, 0, 0, 0, 0, 0, 0]
 
 
 def main():
 	packets = {}
 
 	packets[0x360] = CAN_Packet(0x360)
+	packets[0x361] = CAN_Packet(0x361)
+	packets[0x370] = CAN_Packet(0x370)
+	packets[0x372] = CAN_Packet(0x372)
 	packets[0x3E0] = CAN_Packet(0x3E0)
-	
+	packets[0x3EB] = CAN_Packet(0x3EB)
+	packets[0x469] = CAN_Packet(0x469)
+	packets[0x470] = CAN_Packet(0x470)
+	packets[0x477] = CAN_Packet(0x477)
 
 	vals = []
 
-	vals.append(DataField("RPM", packets[0x360], 0, 1, 1, 0, 0, 13000, 1))
-	vals.append(DataField("Manifold Pressure", packets[0x360], 2, 3, 0.1, 0, 0, 10, 0))
-	vals.append(DataField("Throttle Position", packets[0x360], 4, 5, 0.1, 0, 0, 100, 2))
+	vals.append(DataField("RPM", 1, 0, 0, 2, 0, 13500, packets[0x360], 0))
+	vals.append(DataField("MAP", 0.1, 0, 2, 2, 0, 1000, packets[0x360], 2))
+	vals.append(DataField("Throttle Pos.", 0.1, 0, 4, 2, -1, 101, packets[0x360], 0))
 
-	vals.append(DataField("Coolant Temperature", packets[0x3E0], 0, 1, 0.1, 0, 0, 120, 0))
-	vals.append(DataField("Air Temperature", packets[0x3E0], 2, 3, 0.1, 0, 0, 50, 0))
-	vals.append(DataField("Oil Temperature", packets[0x3E0], 6, 7, 0.1, 0, 0, 100, 0))
+	vals.append(DataField("Fuel Pres.", 0.0145, -14.7, 0, 2, 20, 50, packets[0x361], 2))
+	vals.append(DataField("Oil Pres.", 0.0145, -14.7, 2, 2, 0, 500, packets[0x361], 2))
+
+	vals.append(DataField("Speed", 0.0621, 0, 0, 2, -1, 100, packets[0x370], 0))
+
+	vals.append(DataField("Battery Volts", 0.1, 0, 0, 2, 9, 15.5, packets[0x372], 1))
+
+	vals.append(DataField("Coolant Temp.", 0.1, -273, 0, 2, 0, 120, packets[0x3E0], 0))
+	vals.append(DataField("Air Temp.", 0.1, -273, 2, 2, 0, 50, packets[0x3E0], 0))
+	vals.append(DataField("Oil Temp.", 0.1, -273, 6, 2, 30, 105, packets[0x3E0], 0))
+
+	vals.append(DataField("IGN Angle", 0.1, 0, 4, 2, 0, 25, packets[0x3EB], 1))
+
+	vals.append(DataField("Gear", 1, 0, 7, 1, 0, 5, packets[0x470], 0))
+
+	vals.append(DataField("Limiter", 1, 0, 0, 2, 8000, 15000, packets[0x477], 0))
 
 
-	for i in range(100):
+
+	while 1:
 		for packet in packets.values():
 			packet.send_packet()
 			packet.clear_packet()
