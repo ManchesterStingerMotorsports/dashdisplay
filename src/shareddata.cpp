@@ -8,6 +8,12 @@
 /* Class for managing a thread safe data structure keeping a vector
  * of pointers to DataField objects
  */
+ 
+ 
+SharedData::SharedData(){
+	ui_run.store(true);
+	}
+ 
 void SharedData::add_point(std::shared_ptr<DataField> new_field){
 	std::unique_lock<std::shared_mutex> lock(data_mutex);
 	//std::cout << "DF PTR was " << sizeof(new_field) << " bytes" << std::endl;

@@ -17,12 +17,13 @@ bool DashApp::update_ui(){
 		if(fr.second >= 0){
 			std::shared_ptr<DataField> dp = iteration_data.at(fr.second);
 			double display_val = dp->value;
-			/*if (display_val > dp->upp_lim){fr.first->add_css_class("overlimit");}
-			else if (display_val < dp->low_lim){fr.first->add_css_class("underlimit");}
+			auto style_context = fr.first->get_style_context();
+			if (display_val > dp->upp_lim){style_context->add_class("overlimit");}
+			else if (display_val < dp->low_lim){style_context->add_class("underlimit");}
 			else{
-				fr.first->remove_css_class("overlimit");
-				fr.first->remove_css_class("underlimit");
-				}*/
+				style_context->remove_class("overlimit");
+				style_context->remove_class("underlimit");
+				}
 			fr.first->set_text(std::to_string((int)display_val));
 		}
 	}
@@ -72,7 +73,7 @@ DashApp::DashApp(std::shared_ptr<SharedData> n_shared_data){
 	
 	gear_enumeration = {"N", "1", "2", "3", "4", "5"};
 	
-	gear_index = 11;
+	gear_index = 12;
 	rpm_index = 0;
 	
 	value_layout_map = {

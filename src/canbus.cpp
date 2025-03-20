@@ -80,7 +80,8 @@ int CANBus::listen(std::shared_ptr<SharedData> shared_data){
 		return 1;
 	}
 	
-	while(true){
+	while(shared_data->ui_run){
+		
 		struct can_frame frame;
 		ssize_t nbytes = read(sock, &frame, sizeof(frame));
 		
@@ -98,7 +99,8 @@ int CANBus::listen(std::shared_ptr<SharedData> shared_data){
 			packet_lut.at((int)frame.can_id)->update_dps(frame.data);
 		}
 	}
-	
+	std::cout << "Finished listening" << std::endl;
+	return 0;
 }
 
 void CANBus::add_packet(int packet_id, std::unique_ptr<CANPacket> pkt_ptr){

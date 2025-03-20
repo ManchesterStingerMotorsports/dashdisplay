@@ -5,6 +5,7 @@
 #include <memory>
 #include <shared_mutex>
 #include <vector>
+#include <atomic>
 
 class SharedData{
 	private:
@@ -12,6 +13,9 @@ class SharedData{
 		mutable std::shared_mutex data_mutex;
 	
 	public:
+		std::atomic<bool> ui_run;
+	
+		SharedData();
 		void add_point(std::shared_ptr<DataField> new_field);
 		void update_data(std::vector<std::shared_ptr<DataField> > n_datapoints);
 		int get_dps_size();

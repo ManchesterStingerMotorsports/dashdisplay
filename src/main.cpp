@@ -36,9 +36,13 @@ int app_boot_up(shared_ptr<SharedData> shared_data){
 	styling->load_from_path("/home/fsdash/dash/resources/style.css");
 	auto screen = Gdk::Screen::get_default();
 	auto context = Gtk::StyleContext::create();
-	
 	context->add_provider_for_screen(screen, styling, GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
-	app->run(*window.get_main_window());
+	
+	Gtk::Window* m_wind = window.get_main_window();
+	
+	
+	m_wind->signal_hide().connect([shared_data]() {shared_data->ui_run = false;});
+	app->run(*m_wind);
 	
 	return 0;
 }
@@ -53,6 +57,7 @@ int main(int argc, char* argv[]){
 		
 	CANBus bus;
 	
+	// =============== Start of CAN Setup ====================
 	
 	/*To add packets to the packet listener, create a vector of shared_ptr<DataField> for the packet
 	 * For each data field in the packet, create a shared pointer to a new DataField obj.
@@ -108,14 +113,16 @@ int main(int argc, char* argv[]){
 			make_shared<DataField>("Limiter", 1, 0, 0, 2, -1, 15000, "RPM"),
 			};
 	bus.add_packet(0x477, move(make_unique<CANPacket>(0x477, dashData, pk_477)));
-
+	
+	// =============== End of CAN Setup ====================
+	
 	bus.start_can();
 	
 	thread producer(&CANBus::listen, &bus, dashData);
-	thread consumer(app_boot_up, dashData);
+	
+	app_boot_up(dashData);
 	
 	producer.join();
-	consumer.join();
 	return 0;
 }
 
