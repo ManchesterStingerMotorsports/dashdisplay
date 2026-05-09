@@ -1,54 +1,17 @@
 
-#include "display.h"
 #include "shareddata.h"
 #include "datafield.h"
 #include "canbus.h"
 #include "canpacket.h"
 
-#include <memory>
-#include <thread>
-#include <vector>
+#include <cstdlib>
 #include <iostream>
+#include <memory>
+#include <vector>
 
 using namespace std;
 
-void dummy_display(shared_ptr<SharedData> dashData){
-	
-	while(true){
-		vector<shared_ptr<DataField> > datapoints = dashData->get_points();
-		
-		system("clear");
-		for (shared_ptr<DataField> dp : datapoints){
-			cout << dp->title << ": " << dp->value << endl;
-		}
-		
-		this_thread::sleep_for(chrono::milliseconds(200));
-	}
-	
-}
-
-
-int app_boot_up(shared_ptr<SharedData> shared_data){
-	auto app = Gtk::Application::create("com.formulastudentuom.dashdisplay");
-	DashApp window = DashApp(shared_data);
-	
-	auto styling = Gtk::CssProvider::create();
-	styling->load_from_path("/home/fsdash/dash/resources/style.css");
-	auto screen = Gdk::Screen::get_default();
-	auto context = Gtk::StyleContext::create();
-	context->add_provider_for_screen(screen, styling, GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
-	
-	Gtk::Window* m_wind = window.get_main_window();
-	
-	
-	m_wind->signal_hide().connect([shared_data]() {shared_data->ui_run = false;});
-	app->run(*m_wind);
-	
-	return 0;
-}
-
-
-int main(int argc, char* argv[]){
+int main(){
 	
 	system("sudo ip link set can0 up type can bitrate 1000000 \
 		&& sudo ip link set can1 up type can bitrate 1000000");
@@ -116,14 +79,13 @@ int main(int argc, char* argv[]){
 	
 	// =============== End of CAN Setup ====================
 	
-	bus.start_can();
+	if(bus.start_can() != 0){
+		return 1;
+	}
 	
-	thread producer(&CANBus::listen, &bus, dashData);
-	
-	app_boot_up(dashData);
-	
-	producer.join();
-	return 0;
+	// UI layer intentionally removed. A replacement SquareLine/LVGL frontend
+	// should read from dashData and set dashData->ui_run to false on exit.
+	return bus.listen(dashData);
 }
 
 
