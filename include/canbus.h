@@ -13,7 +13,7 @@
 class CANBus{
 	public:
 		std::map<int, std::unique_ptr<CANPacket> > packet_lut;
-		int sock;
+		int sock = -1;
 		bool sock_init = false;
 		struct sockaddr_can addr;
 		struct ifreq ifr;

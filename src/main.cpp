@@ -3,20 +3,36 @@
 #include "datafield.h"
 #include "canbus.h"
 #include "canpacket.h"
+#include "dashboard_ui.h"
 
+#include <csignal>
 #include <cstdlib>
 #include <iostream>
 #include <memory>
+#include <thread>
 #include <vector>
 
 using namespace std;
 
+namespace {
+	shared_ptr<SharedData> active_dash_data;
+
+	void request_shutdown(int){
+		if(active_dash_data){
+			active_dash_data->ui_run = false;
+		}
+	}
+}
+
 int main(){
+	signal(SIGINT, request_shutdown);
+	signal(SIGTERM, request_shutdown);
 	
 	system("sudo ip link set can0 up type can bitrate 1000000 \
 		&& sudo ip link set can1 up type can bitrate 1000000");
 	
 	shared_ptr<SharedData> dashData = make_shared<SharedData>();
+	active_dash_data = dashData;
 		
 	CANBus bus;
 	
@@ -83,9 +99,12 @@ int main(){
 		return 1;
 	}
 	
-	// UI layer intentionally removed. A replacement SquareLine/LVGL frontend
-	// should read from dashData and set dashData->ui_run to false on exit.
-	return bus.listen(dashData);
+	thread producer(&CANBus::listen, &bus, dashData);
+	int ui_result = run_dashboard_ui(dashData);
+
+	dashData->ui_run = false;
+	producer.join();
+	return ui_result;
 }
 
 

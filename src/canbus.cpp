@@ -5,6 +5,7 @@
 #include <sys/socket.h>
 #include <sys/ioctl.h>
 #include <cstring>
+#include <poll.h>
 #include <unistd.h>
 #include <iostream>
 
@@ -13,7 +14,9 @@ CANBus::CANBus(){
 }
 
 CANBus::~CANBus(){
-	close(sock);
+	if(sock >= 0){
+		close(sock);
+	}
 }
 
 
@@ -35,7 +38,10 @@ int CANBus::start_can(){
 	addr.can_family = AF_CAN;  
 	
 	// Bind the socket and linux CAN interface together
-	bind(sock, (struct sockaddr *)&addr, sizeof(addr));
+	if(bind(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0){
+		perror("Couldn't bind CAN socket!");
+		return 1;
+	}
 	
 	sock_init = true;
 	return 0;
@@ -81,6 +87,18 @@ int CANBus::listen(std::shared_ptr<SharedData> shared_data){
 	}
 	
 	while(shared_data->ui_run){
+		struct pollfd pfd;
+		pfd.fd = sock;
+		pfd.events = POLLIN;
+
+		int poll_result = poll(&pfd, 1, 100);
+		if(poll_result < 0){
+			perror("CAN raw socket poll failed");
+			return 1;
+		}
+		if(poll_result == 0){
+			continue;
+		}
 		
 		struct can_frame frame;
 		ssize_t nbytes = read(sock, &frame, sizeof(frame));
