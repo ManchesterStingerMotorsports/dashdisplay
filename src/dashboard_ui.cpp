@@ -22,6 +22,7 @@ namespace {
 	constexpr int BUFFER_LINES = 80;
 	constexpr int TICK_MS = 5;
 	constexpr int UI_REFRESH_MS = 35;
+	constexpr int STARTUP_FULL_REDRAW_MS = 30000;
 
 	lv_disp_draw_buf_t draw_buffer;
 	lv_color_t buffer_1[SCREEN_WIDTH * BUFFER_LINES];
@@ -55,6 +56,7 @@ int run_dashboard_ui(std::shared_ptr<SharedData> shared_data){
 	ui_init();
 	init_dashboard_values();
 
+	auto startup_time = std::chrono::steady_clock::now();
 	auto last_refresh = std::chrono::steady_clock::now();
 	while(shared_data->ui_run){
 		lv_tick_inc(TICK_MS);
@@ -63,6 +65,10 @@ int run_dashboard_ui(std::shared_ptr<SharedData> shared_data){
 		auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - last_refresh);
 		if(elapsed.count() >= UI_REFRESH_MS){
 			update_dashboard_values(shared_data);
+			auto startup_elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - startup_time);
+			if(startup_elapsed.count() < STARTUP_FULL_REDRAW_MS){
+				lv_obj_invalidate(lv_scr_act());
+			}
 			last_refresh = now;
 		}
 

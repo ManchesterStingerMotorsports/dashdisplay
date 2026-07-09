@@ -35,6 +35,10 @@ for cmdline in /boot/firmware/cmdline.txt /boot/cmdline.txt; do
 done
 systemctl set-default graphical.target
 systemctl enable getty@tty1.service 2>/dev/null || true
+rm -f /etc/cloud/cloud-init.disabled 2>/dev/null || true
+for service in cloud-init-local.service cloud-init.service cloud-config.service cloud-final.service; do
+    systemctl enable "$service" 2>/dev/null || true
+done
 systemctl enable display-manager.service 2>/dev/null || true
 systemctl start display-manager.service 2>/dev/null || true
 

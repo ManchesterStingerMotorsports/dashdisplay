@@ -47,6 +47,12 @@ systemctl daemon-reload
 
 systemctl disable --now display-manager.service 2>/dev/null || true
 systemctl disable --now getty@tty1.service 2>/dev/null || true
+for service in cloud-init-local.service cloud-init.service cloud-config.service cloud-final.service; do
+    systemctl disable --now "$service" 2>/dev/null || true
+done
+if [ -d /etc/cloud ]; then
+    touch /etc/cloud/cloud-init.disabled
+fi
 systemctl set-default multi-user.target
 systemctl enable fsdash.service
 
