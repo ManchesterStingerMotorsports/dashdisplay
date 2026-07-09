@@ -51,28 +51,6 @@ namespace {
 		lv_label_set_text(label, buffer);
 	}
 
-	bool is_out_of_limit(const std::shared_ptr<DataField>& field){
-		if(field == nullptr){
-			return false;
-		}
-		return field->value < field->low_lim || field->value > field->upp_lim;
-	}
-
-	void set_limit_style(lv_obj_t* label, const std::shared_ptr<DataField>& field){
-		if(label == nullptr || field == nullptr){
-			return;
-		}
-
-		lv_obj_clear_state(label, LV_STATE_USER_1 | LV_STATE_USER_2);
-		if(is_out_of_limit(field)){
-			lv_obj_add_state(label, LV_STATE_USER_2);
-			lv_obj_set_style_text_color(label, lv_color_hex(0xFA051A), LV_PART_MAIN | LV_STATE_DEFAULT);
-		}
-		else{
-			lv_obj_set_style_text_color(label, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
-		}
-	}
-
 	void set_temperature_style(lv_obj_t* label, double value){
 		if(label == nullptr){
 			return;
@@ -117,7 +95,10 @@ namespace {
 		}
 
 		set_label_value(label, field->value, decimals);
-		set_limit_style(label, field);
+		if(label != nullptr){
+			lv_obj_clear_state(label, LV_STATE_USER_1 | LV_STATE_USER_2);
+			lv_obj_set_style_text_color(label, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
+		}
 	}
 
 	void update_temperature_field(const FieldMap& fields, const char* title, lv_obj_t* label){
