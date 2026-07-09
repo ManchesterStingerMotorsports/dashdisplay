@@ -40,6 +40,7 @@ LV_FONT_DECLARE(ui_font_Montserrat_144);
 LV_FONT_DECLARE(ui_font_Montserrat_164);
 LV_FONT_DECLARE(ui_font_Montserrat_64);
 LV_FONT_DECLARE(ui_font_Montserrat_96);
+LV_FONT_DECLARE(ui_font_Montserrat_180);
 
 // UI INIT
 void ui_init(void);

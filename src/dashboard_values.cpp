@@ -21,8 +21,10 @@ namespace {
 	constexpr const char* OIL_TEMP_FIELD = "Oil Temp.";
 	constexpr const char* GEAR_FIELD = "Gear";
 	constexpr const char* LAUNCH_CONTROL_FIELD = "Launch Control Active";
-	constexpr double TEMP_AMBER_MIN = 95.0;
-	constexpr double TEMP_RED_MIN = 100.0;
+	constexpr double OIL_TEMP_AMBER_MIN = 105.0;
+	constexpr double OIL_TEMP_RED_MIN = 115.0;
+	constexpr double COOLANT_TEMP_AMBER_MIN = 85.0;
+	constexpr double COOLANT_TEMP_RED_MIN = 90.0;
 	constexpr double RPM_BAR_MAX = 12500.0;
 
 	using FieldMap = std::unordered_map<std::string, std::shared_ptr<DataField>>;
@@ -52,17 +54,17 @@ namespace {
 		lv_label_set_text(label, buffer);
 	}
 
-	void set_temperature_style(lv_obj_t* label, double value){
+	void set_temperature_style(lv_obj_t* label, double value, double amber_min, double red_min){
 		if(label == nullptr){
 			return;
 		}
 
 		lv_obj_clear_state(label, LV_STATE_USER_1 | LV_STATE_USER_2);
-		if(value > TEMP_RED_MIN){
+		if(value > red_min){
 			lv_obj_add_state(label, LV_STATE_USER_2);
 			lv_obj_set_style_text_color(label, lv_color_hex(0xFA051A), LV_PART_MAIN | LV_STATE_DEFAULT);
 		}
-		else if(value >= TEMP_AMBER_MIN){
+		else if(value >= amber_min){
 			lv_obj_add_state(label, LV_STATE_USER_1);
 			lv_obj_set_style_text_color(label, lv_color_hex(0xFB9B02), LV_PART_MAIN | LV_STATE_DEFAULT);
 		}
@@ -102,19 +104,19 @@ namespace {
 		}
 	}
 
-	void update_temperature_field(const FieldMap& fields, const char* title, lv_obj_t* label){
+	void update_temperature_field(const FieldMap& fields, const char* title, lv_obj_t* label, double amber_min, double red_min){
 		std::shared_ptr<DataField> field = find_field(fields, title);
 		if(field == nullptr){
 			return;
 		}
 
 		set_label_value(label, field->value, 0);
-		set_temperature_style(label, field->value);
+		set_temperature_style(label, field->value, amber_min, red_min);
 	}
 
-	bool is_temperature_red(const FieldMap& fields, const char* title){
+	bool is_temperature_red(const FieldMap& fields, const char* title, double red_min){
 		std::shared_ptr<DataField> field = find_field(fields, title);
-		return field != nullptr && field->value > TEMP_RED_MIN;
+		return field != nullptr && field->value > red_min;
 	}
 
 	bool is_active(const FieldMap& fields, const char* title){
@@ -158,8 +160,8 @@ void update_dashboard_values(std::shared_ptr<SharedData> shared_data){
 	update_field(fields, SPEED_FIELD, ui_SPEEDMPH, 1);
 	update_field(fields, BATTERY_FIELD, ui_BATTVOLTAGE, 1);
 	update_field(fields, THROTTLE_FIELD, ui_THROTTLEPOS, 1);
-	update_temperature_field(fields, OIL_TEMP_FIELD, ui_OILTEMP);
-	update_temperature_field(fields, COOLANT_TEMP_FIELD, ui_COOLANTTEMP);
+	update_temperature_field(fields, OIL_TEMP_FIELD, ui_OILTEMP, OIL_TEMP_AMBER_MIN, OIL_TEMP_RED_MIN);
+	update_temperature_field(fields, COOLANT_TEMP_FIELD, ui_COOLANTTEMP, COOLANT_TEMP_AMBER_MIN, COOLANT_TEMP_RED_MIN);
 	update_field(fields, FUEL_PRES_FIELD, ui_FUELPRESSURE, 0);
 	update_field(fields, OIL_PRES_FIELD, ui_OILPRESSURE, 0);
 
@@ -174,7 +176,8 @@ void update_dashboard_values(std::shared_ptr<SharedData> shared_data){
 		lv_bar_set_value(ui_rpmbar, rpm, LV_ANIM_OFF);
 	}
 
-	bool temp_red = is_temperature_red(fields, COOLANT_TEMP_FIELD) || is_temperature_red(fields, OIL_TEMP_FIELD);
+	bool temp_red = is_temperature_red(fields, COOLANT_TEMP_FIELD, COOLANT_TEMP_RED_MIN)
+		|| is_temperature_red(fields, OIL_TEMP_FIELD, OIL_TEMP_RED_MIN);
 	bool launch_control = is_active(fields, LAUNCH_CONTROL_FIELD);
 
 	if(ui_MESSAGEPANEL != nullptr){

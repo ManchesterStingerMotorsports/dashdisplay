@@ -11,6 +11,7 @@ SET(SOURCES screens/ui_dash.c
     fonts/ui_font_Montserrat_144.c
     fonts/ui_font_Montserrat_164.c
     fonts/ui_font_Montserrat_64.c
-    fonts/ui_font_Montserrat_96.c)
+    fonts/ui_font_Montserrat_96.c
+    fonts/ui_font_Montserrat_180.c)
 
 add_library(ui ${SOURCES})
