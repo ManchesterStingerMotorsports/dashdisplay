@@ -12,17 +12,32 @@ if [ ! -x /home/stinger/dash/fsdash ]; then
     exit 1
 fi
 
+boot_args="vt.global_cursor_default=0 quiet loglevel=3 systemd.show_status=false logo.nologo"
 for cmdline in /boot/firmware/cmdline.txt /boot/cmdline.txt; do
     if [ -f "$cmdline" ]; then
-        if ! grep -qw "vt.global_cursor_default=0" "$cmdline"; then
+        changed=0
+        tmp="$(mktemp)"
+        tr -d "\n" < "$cmdline" > "$tmp"
+        for arg in $boot_args; do
+            found=0
+            for existing_arg in $(cat "$tmp"); do
+                if [ "$existing_arg" = "$arg" ]; then
+                    found=1
+                    break
+                fi
+            done
+            if [ "$found" -eq 0 ]; then
+                printf " %s" "$arg" >> "$tmp"
+                changed=1
+            fi
+        done
+        printf "\n" >> "$tmp"
+        if [ "$changed" -eq 1 ]; then
             cp "$cmdline" "$cmdline.fsdash.bak"
-            tmp="$(mktemp)"
-            tr -d "\n" < "$cmdline" > "$tmp"
-            printf " vt.global_cursor_default=0\n" >> "$tmp"
             cat "$tmp" > "$cmdline"
-            rm -f "$tmp"
-            echo "Added vt.global_cursor_default=0 to $cmdline"
+            echo "Updated fsdash boot args in $cmdline"
         fi
+        rm -f "$tmp"
         break
     fi
 done
