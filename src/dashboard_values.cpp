@@ -12,7 +12,6 @@
 
 namespace {
 	constexpr const char* RPM_FIELD = "RPM";
-	constexpr const char* THROTTLE_FIELD = "Throttle Pos.";
 	constexpr const char* FUEL_PRES_FIELD = "Fuel Pres.";
 	constexpr const char* OIL_PRES_FIELD = "Oil Pres.";
 	constexpr const char* SPEED_FIELD = "Speed";
@@ -159,7 +158,6 @@ void update_dashboard_values(std::shared_ptr<SharedData> shared_data){
 	update_field(fields, RPM_FIELD, ui_RPMVAL, 0);
 	update_field(fields, SPEED_FIELD, ui_SPEEDMPH, 1);
 	update_field(fields, BATTERY_FIELD, ui_BATTVOLTAGE, 1);
-	update_field(fields, THROTTLE_FIELD, ui_THROTTLEPOS, 1);
 	update_temperature_field(fields, OIL_TEMP_FIELD, ui_OILTEMP, OIL_TEMP_AMBER_MIN, OIL_TEMP_RED_MIN);
 	update_temperature_field(fields, COOLANT_TEMP_FIELD, ui_COOLANTTEMP, COOLANT_TEMP_AMBER_MIN, COOLANT_TEMP_RED_MIN);
 	update_field(fields, FUEL_PRES_FIELD, ui_FUELPRESSURE, 0);
