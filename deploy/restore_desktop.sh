@@ -22,6 +22,7 @@ for cmdline in /boot/firmware/cmdline.txt /boot/cmdline.txt; do
     fi
 done
 systemctl set-default graphical.target
+systemctl enable getty@tty1.service 2>/dev/null || true
 systemctl enable display-manager.service 2>/dev/null || true
 systemctl start display-manager.service 2>/dev/null || true
 

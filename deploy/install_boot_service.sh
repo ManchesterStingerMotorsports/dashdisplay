@@ -31,6 +31,7 @@ cp /home/stinger/dash/deploy/fsdash.service /etc/systemd/system/fsdash.service
 systemctl daemon-reload
 
 systemctl disable --now display-manager.service 2>/dev/null || true
+systemctl disable --now getty@tty1.service 2>/dev/null || true
 systemctl set-default multi-user.target
 systemctl enable fsdash.service
 
