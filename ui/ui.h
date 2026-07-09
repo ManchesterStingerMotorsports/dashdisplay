@@ -18,7 +18,8 @@ extern "C" {
 
 ///////////////////// SCREENS ////////////////////
 
-#include "screens/ui_Screen1.h"
+#include "screens/ui_dash.h"
+#include "screens/ui_loading.h"
 
 ///////////////////// VARIABLES ////////////////////
 
@@ -28,11 +29,16 @@ extern "C" {
 extern lv_obj_t * ui____initial_actions0;
 
 // IMAGES AND IMAGE SETS
-LV_IMG_DECLARE(ui_img_rpmlightsgrey_png);    // assets/rpmlightsgrey.png
-LV_IMG_DECLARE(ui_img_rpmlights_png);    // assets/rpmlights.png
+LV_IMG_DECLARE(ui_img_grey_lights_png);    // assets/GREY Lights.png
+LV_IMG_DECLARE(ui_img_rpm_lights_png);    // assets/RPM Lights.png
+LV_IMG_DECLARE(ui_img_stingerlogo_png);    // assets/stingerlogo.png
+LV_IMG_DECLARE(ui_img_purplerscroll_png);    // assets/purplerscroll.png
 
 // FONTS
 LV_FONT_DECLARE(ui_font_Montserrat_112);
+LV_FONT_DECLARE(ui_font_Montserrat_144);
+LV_FONT_DECLARE(ui_font_Montserrat_164);
+LV_FONT_DECLARE(ui_font_Montserrat_64);
 LV_FONT_DECLARE(ui_font_Montserrat_96);
 
 // UI INIT

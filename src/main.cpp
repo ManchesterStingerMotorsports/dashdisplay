@@ -92,18 +92,29 @@ int main(){
 			make_shared<DataField>("Limiter", 1, 0, 0, 2, -1, 15000, "RPM"),
 			};
 	bus.add_packet(0x477, move(make_unique<CANPacket>(0x477, dashData, pk_477)));
+
+	vector<shared_ptr<DataField> > pk_3E4 = {
+			make_shared<DataField>("Launch Control Active", 1, 0, 2, 1, 0, 1, "", 7),
+			};
+	bus.add_packet(0x3E4, move(make_unique<CANPacket>(0x3E4, dashData, pk_3E4)));
 	
 	// =============== End of CAN Setup ====================
 	
-	if(bus.start_can() != 0){
-		return 1;
+	bool can_available = bus.start_can() == 0;
+	unique_ptr<thread> producer;
+	if(can_available){
+		producer = make_unique<thread>(&CANBus::listen, &bus, dashData);
 	}
-	
-	thread producer(&CANBus::listen, &bus, dashData);
+	else{
+		cerr << "CAN unavailable; running dashboard with default zero values." << endl;
+	}
+
 	int ui_result = run_dashboard_ui(dashData);
 
 	dashData->ui_run = false;
-	producer.join();
+	if(producer != nullptr && producer->joinable()){
+		producer->join();
+	}
 	return ui_result;
 }
 

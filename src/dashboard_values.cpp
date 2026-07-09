@@ -6,20 +6,25 @@
 #include <algorithm>
 #include <cstdio>
 #include <memory>
+#include <string>
+#include <unordered_map>
 #include <vector>
 
 namespace {
-	constexpr int RPM_INDEX = 0;
-	constexpr int MAP_INDEX = 1;
-	constexpr int THROTTLE_INDEX = 2;
-	constexpr int FUEL_PRES_INDEX = 3;
-	constexpr int OIL_PRES_INDEX = 4;
-	constexpr int SPEED_INDEX = 5;
-	constexpr int BATTERY_INDEX = 6;
-	constexpr int COOLANT_TEMP_INDEX = 7;
-	constexpr int AIR_TEMP_INDEX = 8;
-	constexpr int OIL_TEMP_INDEX = 9;
-	constexpr int GEAR_INDEX = 12;
+	constexpr const char* RPM_FIELD = "RPM";
+	constexpr const char* THROTTLE_FIELD = "Throttle Pos.";
+	constexpr const char* FUEL_PRES_FIELD = "Fuel Pres.";
+	constexpr const char* OIL_PRES_FIELD = "Oil Pres.";
+	constexpr const char* SPEED_FIELD = "Speed";
+	constexpr const char* BATTERY_FIELD = "Battery Volts";
+	constexpr const char* COOLANT_TEMP_FIELD = "Coolant Temp.";
+	constexpr const char* OIL_TEMP_FIELD = "Oil Temp.";
+	constexpr const char* GEAR_FIELD = "Gear";
+	constexpr const char* LAUNCH_CONTROL_FIELD = "Launch Control Active";
+	constexpr double TEMP_AMBER_MIN = 95.0;
+	constexpr double TEMP_RED_MIN = 100.0;
+
+	using FieldMap = std::unordered_map<std::string, std::shared_ptr<DataField>>;
 
 	const char* gear_text(double value){
 		static const char* gears[] = {"N", "1", "2", "3", "4", "5"};
@@ -46,49 +51,113 @@ namespace {
 		lv_label_set_text(label, buffer);
 	}
 
-	void set_limit_style(lv_obj_t* label, const std::shared_ptr<DataField>& field){
-		if(label == nullptr || field == nullptr){
-			return;
-		}
-
-		if(field->value > field->upp_lim){
-			lv_obj_set_style_text_color(label, lv_color_hex(0xFA051A), LV_PART_MAIN | LV_STATE_DEFAULT);
-		}
-		else if(field->value < field->low_lim){
-			lv_obj_set_style_text_color(label, lv_color_hex(0x4DA3FF), LV_PART_MAIN | LV_STATE_DEFAULT);
-		}
-		else{
-			lv_obj_set_style_text_color(label, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
-		}
-	}
-
-	void update_field(const std::vector<std::shared_ptr<DataField>>& points, int index, lv_obj_t* label, int decimals){
-		if(index < 0 || index >= static_cast<int>(points.size())){
-			return;
-		}
-
-		set_label_value(label, points.at(index)->value, decimals);
-		set_limit_style(label, points.at(index));
-	}
-
 	bool is_out_of_limit(const std::shared_ptr<DataField>& field){
 		if(field == nullptr){
 			return false;
 		}
 		return field->value < field->low_lim || field->value > field->upp_lim;
 	}
+
+	void set_limit_style(lv_obj_t* label, const std::shared_ptr<DataField>& field){
+		if(label == nullptr || field == nullptr){
+			return;
+		}
+
+		lv_obj_clear_state(label, LV_STATE_USER_1 | LV_STATE_USER_2);
+		if(is_out_of_limit(field)){
+			lv_obj_add_state(label, LV_STATE_USER_2);
+			lv_obj_set_style_text_color(label, lv_color_hex(0xFA051A), LV_PART_MAIN | LV_STATE_DEFAULT);
+		}
+		else{
+			lv_obj_set_style_text_color(label, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
+		}
+	}
+
+	void set_temperature_style(lv_obj_t* label, double value){
+		if(label == nullptr){
+			return;
+		}
+
+		lv_obj_clear_state(label, LV_STATE_USER_1 | LV_STATE_USER_2);
+		if(value > TEMP_RED_MIN){
+			lv_obj_add_state(label, LV_STATE_USER_2);
+			lv_obj_set_style_text_color(label, lv_color_hex(0xFA051A), LV_PART_MAIN | LV_STATE_DEFAULT);
+		}
+		else if(value >= TEMP_AMBER_MIN){
+			lv_obj_add_state(label, LV_STATE_USER_1);
+			lv_obj_set_style_text_color(label, lv_color_hex(0xFB9B02), LV_PART_MAIN | LV_STATE_DEFAULT);
+		}
+		else{
+			lv_obj_set_style_text_color(label, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
+		}
+	}
+
+	FieldMap map_fields(const std::vector<std::shared_ptr<DataField>>& points){
+		FieldMap fields;
+		for(const auto& point : points){
+			if(point != nullptr){
+				fields[point->title] = point;
+			}
+		}
+		return fields;
+	}
+
+	std::shared_ptr<DataField> find_field(const FieldMap& fields, const char* title){
+		auto it = fields.find(title);
+		if(it == fields.end()){
+			return nullptr;
+		}
+		return it->second;
+	}
+
+	void update_field(const FieldMap& fields, const char* title, lv_obj_t* label, int decimals){
+		std::shared_ptr<DataField> field = find_field(fields, title);
+		if(field == nullptr){
+			return;
+		}
+
+		set_label_value(label, field->value, decimals);
+		set_limit_style(label, field);
+	}
+
+	void update_temperature_field(const FieldMap& fields, const char* title, lv_obj_t* label){
+		std::shared_ptr<DataField> field = find_field(fields, title);
+		if(field == nullptr){
+			return;
+		}
+
+		set_label_value(label, field->value, 0);
+		set_temperature_style(label, field->value);
+	}
+
+	bool is_temperature_red(const FieldMap& fields, const char* title){
+		std::shared_ptr<DataField> field = find_field(fields, title);
+		return field != nullptr && field->value > TEMP_RED_MIN;
+	}
+
+	bool is_active(const FieldMap& fields, const char* title){
+		std::shared_ptr<DataField> field = find_field(fields, title);
+		return field != nullptr && field->value > 0.5;
+	}
+
+	void clear_message_state(){
+		if(ui_MESSAGEPANEL != nullptr){
+			lv_obj_clear_state(ui_MESSAGEPANEL, LV_STATE_USER_1 | LV_STATE_USER_2);
+		}
+		if(ui_HOTMESSAGE != nullptr){
+			lv_obj_clear_state(ui_HOTMESSAGE, LV_STATE_USER_1);
+		}
+		if(ui_LCMESSAGE != nullptr){
+			lv_obj_clear_state(ui_LCMESSAGE, LV_STATE_USER_1);
+		}
+	}
 }
 
 void init_dashboard_values(){
-	if(ui_RPMBAR != nullptr){
-		lv_bar_set_range(ui_RPMBAR, 0, 14000);
+	if(ui_rpmbar != nullptr){
+		lv_bar_set_range(ui_rpmbar, 0, 14000);
 	}
-	if(ui_MESSAGEPANEL != nullptr){
-		lv_obj_clear_state(ui_MESSAGEPANEL, LV_STATE_USER_1);
-	}
-	if(ui_MESSAGE != nullptr){
-		lv_label_set_text(ui_MESSAGE, "OK");
-	}
+	clear_message_state();
 }
 
 void update_dashboard_values(std::shared_ptr<SharedData> shared_data){
@@ -101,49 +170,54 @@ void update_dashboard_values(std::shared_ptr<SharedData> shared_data){
 		return;
 	}
 
-	update_field(points, RPM_INDEX, ui_RPMVAL, 0);
-	update_field(points, SPEED_INDEX, ui_SPEEDMPH, 1);
-	update_field(points, BATTERY_INDEX, ui_BATTVOLTAGE, 1);
-	update_field(points, THROTTLE_INDEX, ui_THROTTLEPOS, 1);
-	update_field(points, OIL_TEMP_INDEX, ui_OILTEMP, 0);
-	update_field(points, COOLANT_TEMP_INDEX, ui_COOLANTTEMP, 0);
-	update_field(points, AIR_TEMP_INDEX, ui_AIRTEMP, 0);
-	update_field(points, FUEL_PRES_INDEX, ui_FUELPRES, 0);
-	update_field(points, OIL_PRES_INDEX, ui_OILPRES, 0);
-	update_field(points, MAP_INDEX, ui_MAPPRES, 0);
+	FieldMap fields = map_fields(points);
 
-	if(GEAR_INDEX < static_cast<int>(points.size()) && ui_GEAR != nullptr){
-		lv_label_set_text(ui_GEAR, gear_text(points.at(GEAR_INDEX)->value));
+	update_field(fields, RPM_FIELD, ui_RPMVAL, 0);
+	update_field(fields, SPEED_FIELD, ui_SPEEDMPH, 1);
+	update_field(fields, BATTERY_FIELD, ui_BATTVOLTAGE, 1);
+	update_field(fields, THROTTLE_FIELD, ui_THROTTLEPOS, 1);
+	update_temperature_field(fields, OIL_TEMP_FIELD, ui_OILTEMP);
+	update_temperature_field(fields, COOLANT_TEMP_FIELD, ui_COOLANTTEMP);
+	update_field(fields, FUEL_PRES_FIELD, ui_FUELPRESSURE, 0);
+	update_field(fields, OIL_PRES_FIELD, ui_OILPRESSURE, 0);
+
+	std::shared_ptr<DataField> gear = find_field(fields, GEAR_FIELD);
+	if(gear != nullptr && ui_GEAR != nullptr){
+		lv_label_set_text(ui_GEAR, gear_text(gear->value));
 	}
 
-	if(RPM_INDEX < static_cast<int>(points.size()) && ui_RPMBAR != nullptr){
-		int rpm = static_cast<int>(std::clamp(points.at(RPM_INDEX)->value, 0.0, 14000.0));
-		lv_bar_set_value(ui_RPMBAR, rpm, LV_ANIM_OFF);
+	std::shared_ptr<DataField> rpm_field = find_field(fields, RPM_FIELD);
+	if(rpm_field != nullptr && ui_rpmbar != nullptr){
+		int rpm = static_cast<int>(std::clamp(rpm_field->value, 0.0, 14000.0));
+		lv_bar_set_value(ui_rpmbar, rpm, LV_ANIM_OFF);
 	}
 
-	bool warning = false;
-	const int warning_fields[] = {
-		BATTERY_INDEX,
-		COOLANT_TEMP_INDEX,
-		OIL_TEMP_INDEX,
-		FUEL_PRES_INDEX,
-		OIL_PRES_INDEX
-	};
-	for(int index : warning_fields){
-		if(index >= 0 && index < static_cast<int>(points.size())){
-			warning = warning || is_out_of_limit(points.at(index));
-		}
-	}
+	bool temp_red = is_temperature_red(fields, COOLANT_TEMP_FIELD) || is_temperature_red(fields, OIL_TEMP_FIELD);
+	bool launch_control = is_active(fields, LAUNCH_CONTROL_FIELD);
 
 	if(ui_MESSAGEPANEL != nullptr){
-		if(warning){
+		lv_obj_clear_state(ui_MESSAGEPANEL, LV_STATE_USER_1 | LV_STATE_USER_2);
+		if(temp_red){
 			lv_obj_add_state(ui_MESSAGEPANEL, LV_STATE_USER_1);
 		}
-		else{
-			lv_obj_clear_state(ui_MESSAGEPANEL, LV_STATE_USER_1);
+		else if(launch_control){
+			lv_obj_add_state(ui_MESSAGEPANEL, LV_STATE_USER_2);
 		}
 	}
-	if(ui_MESSAGE != nullptr){
-		lv_label_set_text(ui_MESSAGE, warning ? "CHECK" : "OK");
+	if(ui_HOTMESSAGE != nullptr){
+		if(temp_red){
+			lv_obj_add_state(ui_HOTMESSAGE, LV_STATE_USER_1);
+		}
+		else{
+			lv_obj_clear_state(ui_HOTMESSAGE, LV_STATE_USER_1);
+		}
+	}
+	if(ui_LCMESSAGE != nullptr){
+		if(launch_control && !temp_red){
+			lv_obj_add_state(ui_LCMESSAGE, LV_STATE_USER_1);
+		}
+		else{
+			lv_obj_clear_state(ui_LCMESSAGE, LV_STATE_USER_1);
+		}
 	}
 }

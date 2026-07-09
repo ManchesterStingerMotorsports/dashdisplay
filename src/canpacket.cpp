@@ -29,10 +29,15 @@ void CANPacket::update_dps(__u8 can_data[8]){
 	for (int i : contents_idxs){
 		std::shared_ptr<DataField> updated_field = std::make_shared<DataField>(*old_data.at(i));
 		
-		// Big-endian decode
 		int nd = 0;
-		for (int b=0; b < updated_field->length_bytes; b++){
-			nd = (nd << 8) | can_data[updated_field->start_byte + b];
+		if(updated_field->bit_index >= 0){
+			nd = (can_data[updated_field->start_byte] >> updated_field->bit_index) & 0x01;
+		}
+		else{
+			// Big-endian decode
+			for (int b=0; b < updated_field->length_bytes; b++){
+				nd = (nd << 8) | can_data[updated_field->start_byte + b];
+			}
 		}
 		
 		updated_field->update_raw(nd);
