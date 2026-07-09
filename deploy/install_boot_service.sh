@@ -12,6 +12,21 @@ if [ ! -x /home/stinger/dash/fsdash ]; then
     exit 1
 fi
 
+for cmdline in /boot/firmware/cmdline.txt /boot/cmdline.txt; do
+    if [ -f "$cmdline" ]; then
+        if ! grep -qw "vt.global_cursor_default=0" "$cmdline"; then
+            cp "$cmdline" "$cmdline.fsdash.bak"
+            tmp="$(mktemp)"
+            tr -d "\n" < "$cmdline" > "$tmp"
+            printf " vt.global_cursor_default=0\n" >> "$tmp"
+            cat "$tmp" > "$cmdline"
+            rm -f "$tmp"
+            echo "Added vt.global_cursor_default=0 to $cmdline"
+        fi
+        break
+    fi
+done
+
 cp /home/stinger/dash/deploy/fsdash.service /etc/systemd/system/fsdash.service
 systemctl daemon-reload
 
