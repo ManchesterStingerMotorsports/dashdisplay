@@ -1,7 +1,7 @@
 CC = gcc
 CXX = g++
 PKG_CONFIG = pkg-config
-UI_BACKEND ?= sdl
+UI_BACKEND ?= fbdev
 
 CPP_SRC = src/datafield.cpp src/canpacket.cpp src/canbus.cpp src/shareddata.cpp src/dashboard_values.cpp src/dashboard_ui.cpp src/main.cpp
 UI_SRC = ui/ui.c ui/ui_helpers.c ui/components/ui_comp_hook.c \

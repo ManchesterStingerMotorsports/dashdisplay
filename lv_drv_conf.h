@@ -7,6 +7,7 @@
 #define SDL_ZOOM 1
 #define SDL_FULLSCREEN 0
 #define SDL_DIRECT_EXIT 1
+#define SDL_INCLUDE_PATH <SDL2/SDL.h>
 
 #define USE_FBDEV 1
 #define FBDEV_PATH "/dev/fb0"
