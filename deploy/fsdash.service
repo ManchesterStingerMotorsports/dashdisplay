@@ -1,0 +1,26 @@
+[Unit]
+Description=FS Digital Dashboard
+After=local-fs.target systemd-user-sessions.service
+Conflicts=display-manager.service
+ConditionPathExists=/home/stinger/dash/fsdash
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory=/home/stinger/dash
+TTYPath=/dev/tty1
+StandardInput=tty
+StandardOutput=journal
+StandardError=journal
+TTYReset=yes
+TTYVHangup=yes
+TTYVTDisallocate=yes
+ExecStartPre=/bin/sh -c 'chvt 1 || true'
+ExecStartPre=/bin/sh -c 'setterm -term linux -cursor off -blank 0 -powerdown 0 -clear all < /dev/tty1 > /dev/tty1 || true'
+ExecStart=/home/stinger/dash/fsdash
+Restart=always
+RestartSec=1
+
+[Install]
+WantedBy=multi-user.target
