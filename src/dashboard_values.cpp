@@ -23,6 +23,7 @@ namespace {
 	constexpr const char* LAUNCH_CONTROL_FIELD = "Launch Control Active";
 	constexpr double TEMP_AMBER_MIN = 95.0;
 	constexpr double TEMP_RED_MIN = 100.0;
+	constexpr double RPM_BAR_MAX = 12500.0;
 
 	using FieldMap = std::unordered_map<std::string, std::shared_ptr<DataField>>;
 
@@ -136,7 +137,7 @@ namespace {
 
 void init_dashboard_values(){
 	if(ui_rpmbar != nullptr){
-		lv_bar_set_range(ui_rpmbar, 0, 14000);
+		lv_bar_set_range(ui_rpmbar, 0, static_cast<int>(RPM_BAR_MAX));
 	}
 	clear_message_state();
 }
@@ -169,7 +170,7 @@ void update_dashboard_values(std::shared_ptr<SharedData> shared_data){
 
 	std::shared_ptr<DataField> rpm_field = find_field(fields, RPM_FIELD);
 	if(rpm_field != nullptr && ui_rpmbar != nullptr){
-		int rpm = static_cast<int>(std::clamp(rpm_field->value, 0.0, 14000.0));
+		int rpm = static_cast<int>(std::clamp(rpm_field->value, 0.0, RPM_BAR_MAX));
 		lv_bar_set_value(ui_rpmbar, rpm, LV_ANIM_OFF);
 	}
 
