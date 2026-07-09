@@ -28,8 +28,10 @@ int main(){
 	signal(SIGINT, request_shutdown);
 	signal(SIGTERM, request_shutdown);
 	
-	system("sudo ip link set can0 up type can bitrate 1000000 \
-		&& sudo ip link set can1 up type can bitrate 1000000");
+	system("ip link set can0 down 2>/dev/null; \
+		ip link set can1 down 2>/dev/null; \
+		ip link set can0 up type can bitrate 1000000 2>/dev/null; \
+		ip link set can1 up type can bitrate 1000000 2>/dev/null");
 	
 	shared_ptr<SharedData> dashData = make_shared<SharedData>();
 	active_dash_data = dashData;
