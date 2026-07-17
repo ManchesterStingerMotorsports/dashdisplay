@@ -127,6 +127,9 @@ namespace {
 		if(ui_MESSAGEPANEL != nullptr){
 			lv_obj_clear_state(ui_MESSAGEPANEL, LV_STATE_USER_1 | LV_STATE_USER_2);
 		}
+		if(ui_gearpanel != nullptr){
+			lv_obj_clear_state(ui_gearpanel, LV_STATE_USER_1 | LV_STATE_USER_2);
+		}
 		if(ui_HOTMESSAGE != nullptr){
 			lv_obj_clear_state(ui_HOTMESSAGE, LV_STATE_USER_1);
 		}
@@ -185,6 +188,15 @@ void update_dashboard_values(std::shared_ptr<SharedData> shared_data){
 		}
 		else if(launch_control){
 			lv_obj_add_state(ui_MESSAGEPANEL, LV_STATE_USER_2);
+		}
+	}
+	if(ui_gearpanel != nullptr){
+		lv_obj_clear_state(ui_gearpanel, LV_STATE_USER_1 | LV_STATE_USER_2);
+		if(temp_red){
+			lv_obj_add_state(ui_gearpanel, LV_STATE_USER_1);
+		}
+		else if(launch_control){
+			lv_obj_add_state(ui_gearpanel, LV_STATE_USER_2);
 		}
 	}
 	if(ui_HOTMESSAGE != nullptr){

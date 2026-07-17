@@ -76,6 +76,10 @@ void ui_dash_screen_init(void)
     lv_obj_set_style_text_color(ui_gearpanel, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_gearpanel, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_align(ui_gearpanel, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(ui_gearpanel, lv_color_hex(0xFA051A), LV_PART_MAIN | LV_STATE_USER_1);
+    lv_obj_set_style_bg_opa(ui_gearpanel, 255, LV_PART_MAIN | LV_STATE_USER_1);
+    lv_obj_set_style_bg_color(ui_gearpanel, lv_color_hex(0x19BD20), LV_PART_MAIN | LV_STATE_USER_2);
+    lv_obj_set_style_bg_opa(ui_gearpanel, 255, LV_PART_MAIN | LV_STATE_USER_2);
 
     ui_GEAR = lv_label_create(ui_dash);
     lv_obj_set_width(ui_GEAR, LV_SIZE_CONTENT);   /// 1
