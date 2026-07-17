@@ -1,0 +1,17 @@
+SET(SOURCES screens/ui_dash.c
+    screens/ui_loading.c
+    ui.c
+    components/ui_comp_hook.c
+    ui_helpers.c
+    images/ui_img_grey_lights_png.c
+    images/ui_img_rpm_lights_png.c
+    images/ui_img_stingerlogo_png.c
+    images/ui_img_purplerscroll_png.c
+    fonts/ui_font_Montserrat_112.c
+    fonts/ui_font_Montserrat_144.c
+    fonts/ui_font_Montserrat_164.c
+    fonts/ui_font_Montserrat_180.c
+    fonts/ui_font_Montserrat_64.c
+    fonts/ui_font_Montserrat_96.c)
+
+add_library(ui ${SOURCES})
