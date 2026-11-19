@@ -1,0 +1,16 @@
+{
+  "codename": "Montserrat_144",
+  "ttf_path": "/assets/Montserrat-Medium.ttf",
+  "bin_path": "/assets\\ui_font_Montserrat_144.bin",
+  "c_path": "/assets\\ui_font_Montserrat_144.c",
+  "cfg_path": "/assets\\ui_font_Montserrat_144.fcfg",
+  "size": 144,
+  "bpp": 4,
+  "letters": 0,
+  "ranges": [
+    "0x20-0x7f"
+  ],
+  "symbols": "",
+  "customparams": "--no-compress --no-prefilter",
+  "uploaded": false
+}
