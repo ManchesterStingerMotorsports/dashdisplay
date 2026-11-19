@@ -1,42 +1,35 @@
-# Editing the DashDisplay UI in SquareLine Studio
+# Working on the DashDisplay UI
 
-The editable project is `dash-ui.spj` in this folder. Keep it alongside
-`dash-ui.sll`, `Themes.slt`, and `assets/` so SquareLine can find the project
-settings, images, and fonts. The checked-in project was saved with
-SquareLine Studio 1.6.1. It is configured for the Raspberry Pi at 800 × 480,
-with LVGL 8.3.11 and 16-bit RGB565 without byte swapping.
+Clone DashDisplay (or download and unzip the whole repo) and open
+`squareline/dash-ui.spj` in SquareLine Studio 1.6.1. Keep the
+`squareline/` folder together so the images and fonts load. The project is
+already set up for the Pi's 800 × 480 display, with LVGL 8.3.11 and 16-bit
+RGB565 with byte swapping off.
 
-1. Clone DashDisplay or download the default branch ZIP and extract it.
-   In SquareLine Studio, choose **File → Open** or **Open → Import Project**
-   from the launcher, then select `squareline/dash-ui.spj`.
-   Edit the dash or loading screen, use **Play** to preview the layout,
-   and save the project.
-2. Set **UI Files Export Path** to a clean temporary folder and choose
-   **Export → Export UI Files**. The output should include `ui.c`, `ui.h`,
-   and the `screens/`, `fonts/`, `images/`, and `components/`
-   subfolders.
-3. Update the generated files under [`ui/`](../ui/) from the export, keeping
-   that directory structure. Review `git diff` for stale generated files,
-   accidental changes, and any hand edits that need to carry forward.
-   The [Makefile](../Makefile) builds `ui/`. The two `final_ui*` folders
-   are older or alternate exports. DashDisplay already has its own build
-   and CAN integration, so use the UI export option.
-4. Keep the names of widgets referenced by
-   [`src/dashboard_values.cpp`](../src/dashboard_values.cpp), such as
-   `RPMVAL`, `GEAR`, and `SPEEDMPH`. If you rename one, update the
-   corresponding C++ reference as part of the same change. SquareLine
-   defines the widgets and layout. The C++ code supplies live CAN data
-   and handles display updates and warning states.
-5. With the repo's LVGL dependencies available, rebuild with
-   `make clean && make` on the Pi. On Linux with SDL2 and the LVGL
-   dependencies, you can also use `make UI_BACKEND=sdl clean && make UI_BACKEND=sdl`
-   and run `./fsdash` for a desktop check. Test live values and warnings
-   on the Pi or a CAN test setup before relying on the new layout.
-   Commit the saved SquareLine source and the matching `ui/` export
-   together so the next person can reproduce the build.
+## Make a change and export it
 
-SquareLine records each editor's export path in a local `.slp` file.
-Set this path on your machine when you export.
+1. Edit the dash or the loading screen. Hit **Play** to see how it looks, then
+   save the project.
+2. Choose **Export → Export UI Files** and point it at the repo's
+   [`ui/` folder](../ui/). SquareLine remembers that folder on your machine.
+   The Makefile builds from `ui/`. The `final_ui*` folders hold earlier versions
+   and alternate exports.
+3. Take a quick look at `git diff` before you commit. Keep widget names like
+   `GEAR`, `RPMVAL`, and `SPEEDMPH` as they are unless you're also updating
+   [the C++ code that fills them in](../src/dashboard_values.cpp).
 
-See the [SquareLine project settings](https://docs.squareline.io/docs/1.6.1/dev_env/project_settings/)
-and [SquareLine export workflow](https://docs.squareline.io/docs/introduction/typical_dev/).
+## Try it out
+
+Once the LVGL dependencies are set up, run `make clean && make` on the Pi.
+If you're on Linux with SDL2, you can also preview the dash on your desktop.
+
+```sh
+make UI_BACKEND=sdl clean && make UI_BACKEND=sdl
+./fsdash
+```
+
+Check the live values and warnings on the Pi or a CAN test setup. When it
+looks right, commit your saved SquareLine project and the generated `ui/`
+files together so the next person has both.
+
+[SquareLine's export guide](https://docs.squareline.io/docs/introduction/typical_dev/)
