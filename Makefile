@@ -1,9 +1,21 @@
 CC = gcc
 CXX = g++
 PKG_CONFIG = pkg-config
+ifeq ($(OS),Windows_NT)
+UI_BACKEND ?= sdl
+TARGET = fsdash.exe
+else
 UI_BACKEND ?= fbdev
+TARGET = fsdash
+endif
 
-CPP_SRC = src/datafield.cpp src/canpacket.cpp src/canbus.cpp src/shareddata.cpp src/dashboard_values.cpp src/dashboard_ui.cpp src/main.cpp
+CPP_SRC = src/datafield.cpp src/shareddata.cpp src/dashboard_values.cpp src/dashboard_ui.cpp src/main.cpp
+ifeq ($(OS),Windows_NT)
+CPP_SRC += src/preview_input.cpp
+PLATFORM_LIBS = -lws2_32
+else
+CPP_SRC += src/canpacket.cpp src/canbus.cpp
+endif
 UI_SRC = ui/ui.c ui/ui_helpers.c ui/components/ui_comp_hook.c \
 	$(wildcard ui/screens/*.c) \
 	$(wildcard ui/images/*.c) \
@@ -27,7 +39,7 @@ ifneq ($(wildcard $(LOCAL_LV_DRIVERS_DIR)),)
 ifeq ($(UI_BACKEND),fbdev)
 LV_DRIVERS_SRC = $(LOCAL_LV_DRIVERS_DIR)/display/fbdev.c
 else
-LV_DRIVERS_SRC = $(LOCAL_LV_DRIVERS_DIR)/sdl/sdl.c
+LV_DRIVERS_SRC = $(LOCAL_LV_DRIVERS_DIR)/sdl/sdl.c $(LOCAL_LV_DRIVERS_DIR)/sdl/sdl_common.c
 endif
 LV_DRIVERS_CFLAGS ?= -I$(DEPS_DIR)
 LV_DRIVERS_LIBS ?=
@@ -37,8 +49,9 @@ LV_DRIVERS_CFLAGS ?=
 LV_DRIVERS_LIBS ?= -llv_drivers
 endif
 
-SDL_CFLAGS ?= $(shell $(PKG_CONFIG) --cflags sdl2 2>/dev/null)
-SDL_LIBS ?= $(shell $(PKG_CONFIG) --libs sdl2 2>/dev/null || echo -lSDL2)
+# DashDisplay provides main() and calls SDL_SetMainReady() itself.
+SDL_CFLAGS ?= $(filter-out -Dmain=SDL_main,$(shell $(PKG_CONFIG) --cflags sdl2 2>/dev/null))
+SDL_LIBS ?= $(filter-out -lmingw32 -mwindows -lSDL2main,$(shell $(PKG_CONFIG) --libs sdl2 2>/dev/null || echo -lSDL2))
 
 OBJ = $(CPP_SRC:.cpp=.o) $(UI_SRC:.c=.o) $(LVGL_SRC:.c=.o) $(LV_DRIVERS_SRC:.c=.o)
 
@@ -53,8 +66,7 @@ endif
 INCLUDE = -Iinclude -I. -Iui $(LVGL_CFLAGS) $(LV_DRIVERS_CFLAGS) $(SDL_CFLAGS)
 CFLAGS = -std=c11 -Wall $(INCLUDE) $(BACKEND_FLAGS) -DLV_CONF_INCLUDE_SIMPLE -DLV_DRV_CONF_INCLUDE_SIMPLE
 CXXFLAGS = -std=c++20 -Wall $(INCLUDE) $(BACKEND_FLAGS) -DLV_CONF_INCLUDE_SIMPLE -DLV_DRV_CONF_INCLUDE_SIMPLE
-LIBS = $(LVGL_LIBS) $(LV_DRIVERS_LIBS) $(BACKEND_LIBS) -pthread
-TARGET = fsdash
+LIBS = $(LVGL_LIBS) $(LV_DRIVERS_LIBS) $(BACKEND_LIBS) $(PLATFORM_LIBS) -pthread
 
 all: $(TARGET)
 

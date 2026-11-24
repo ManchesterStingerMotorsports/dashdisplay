@@ -1,2 +1,4 @@
 fsdash
+fsdash.exe
 *.o
+/deps/

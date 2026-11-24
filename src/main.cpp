@@ -1,16 +1,25 @@
 
 #include "shareddata.h"
-#include "datafield.h"
-#include "canbus.h"
-#include "canpacket.h"
 #include "dashboard_ui.h"
 
 #include <csignal>
+#include <memory>
+
+#ifdef _WIN32
+#include "preview_input.h"
+
+#include <iostream>
+#include <string_view>
+#else
+#include "datafield.h"
+#include "canbus.h"
+#include "canpacket.h"
+
 #include <cstdlib>
 #include <iostream>
-#include <memory>
 #include <thread>
 #include <vector>
+#endif
 
 using namespace std;
 
@@ -24,18 +33,33 @@ namespace {
 	}
 }
 
+#ifdef _WIN32
+int main(int argc, char* argv[]){
+#else
 int main(){
+#endif
 	signal(SIGINT, request_shutdown);
 	signal(SIGTERM, request_shutdown);
-	
+
+	shared_ptr<SharedData> dashData = make_shared<SharedData>();
+	active_dash_data = dashData;
+
+#ifdef _WIN32
+	if(argc == 2 && std::string_view(argv[1]) == "--preview-input"){
+		return run_preview_input(dashData);
+	}
+	if(argc != 1){
+		cerr << "Usage: fsdash.exe [--preview-input]\n";
+		return 1;
+	}
+#endif
+
+#ifndef _WIN32
 	system("ip link set can0 down 2>/dev/null; \
 		ip link set can1 down 2>/dev/null; \
 		ip link set can0 up type can bitrate 1000000 2>/dev/null; \
 		ip link set can1 up type can bitrate 1000000 2>/dev/null");
-	
-	shared_ptr<SharedData> dashData = make_shared<SharedData>();
-	active_dash_data = dashData;
-		
+
 	CANBus bus;
 	
 	// =============== Start of CAN Setup ====================
@@ -110,13 +134,16 @@ int main(){
 	else{
 		cerr << "CAN unavailable; running dashboard with default zero values." << endl;
 	}
+#endif
 
 	int ui_result = run_dashboard_ui(dashData);
 
 	dashData->ui_run = false;
+#ifndef _WIN32
 	if(producer != nullptr && producer->joinable()){
 		producer->join();
 	}
+#endif
 	return ui_result;
 }
 

@@ -9,6 +9,7 @@
 #include <thread>
 
 #ifdef UI_BACKEND_SDL
+#include <SDL2/SDL.h>
 #include "lv_drivers/sdl/sdl.h"
 #endif
 
@@ -37,6 +38,7 @@ namespace {
 		display_driver.ver_res = SCREEN_HEIGHT;
 
 #ifdef UI_BACKEND_SDL
+		SDL_SetMainReady();
 		sdl_init();
 		display_driver.flush_cb = sdl_display_flush;
 #endif
@@ -50,7 +52,11 @@ namespace {
 	}
 }
 
+#ifdef _WIN32
+int run_dashboard_ui(std::shared_ptr<SharedData> shared_data, const PreviewInputPoll& poll_preview_input){
+#else
 int run_dashboard_ui(std::shared_ptr<SharedData> shared_data){
+#endif
 	lv_init();
 	init_display_driver();
 	ui_init();
@@ -64,6 +70,11 @@ int run_dashboard_ui(std::shared_ptr<SharedData> shared_data){
 		auto now = std::chrono::steady_clock::now();
 		auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - last_refresh);
 		if(elapsed.count() >= UI_REFRESH_MS){
+#ifdef _WIN32
+			if(poll_preview_input){
+				poll_preview_input(*shared_data);
+			}
+#endif
 			update_dashboard_values(shared_data);
 			auto startup_elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - startup_time);
 			if(startup_elapsed.count() < STARTUP_FULL_REDRAW_MS){
